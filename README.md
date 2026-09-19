@@ -123,8 +123,11 @@ The base choices are:
 Therefore, the base test is: A1, B1, C1
 
 T1 is the base test.
+
 T2 changes only the Row Position characteristic from the base choice while keeping Column Position and Slot State at their base choices.
+
 T3 changes only the Column Position characteristic from the base choice while keeping Row Position and Slot State at their base choices.
+
 T4 changes only the Slot State characteristic from the base choice while keeping Row Position and Column Position at their base choices.
 
 #### 7. Test Values
