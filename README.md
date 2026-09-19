@@ -46,10 +46,8 @@ The base choices are:
 Therefore, the base test is: A1, B1, C1
 
 #### 6. BCC Test Requirements
-Number of test cases:
-\[
-1 + (2-1) + (2-1) + (2-1) = 4
-\]
+Number of test cases: \[ 1 + (2-1) + (2-1) + (2-1) \]= 4
+
 | Test | Row Position | Column Position | Move Conflict | Expected Result |
 |---|---|---|---|---|
 | T1 (Base) | A1: Valid | B1: Valid | C1: No conflict | `true` |
