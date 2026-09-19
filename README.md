@@ -2,7 +2,8 @@
 ## BCC (Base Choice Coverage)
 ### BCC-1: IsValidMove()
 #### 1.Testable Function
-Function: isValidMove(int row,int col, String Value) \nThis method will check position is in the range and the value is unique in row, column and box.
+Function: isValidMove(int row,int col, String Value) 
+<br> This method will check position is in the range and the value is unique in row, column and box.
 #### 2. Parameters
 | Parameter | Description |
 |---|---|
