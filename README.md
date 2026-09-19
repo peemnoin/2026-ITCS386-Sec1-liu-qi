@@ -7,9 +7,9 @@ Function: isValidMove(int row,int col, String Value)
 #### 2. Parameters
 | Parameter | Description |
 |---|---|
-| `row` | The row index of the Sudoku board. |
-| `col` | The column index of the Sudoku board. |
-| `value` | The Sudoku value to be checked. |
+| `row` | The row index of the Sudoku board |
+| `col` | The column index of the Sudoku board |
+| `value` | The Sudoku value to be checked |
 
 #### 3. Return Value
 The method returns a boolean value:
@@ -21,15 +21,15 @@ The method returns a boolean value:
 C1: Board Position
 | Partition | Description |
 |---|---|
-| P1: Valid position | `row` and `col` are within the Sudoku board range. |
-| P2: Invalid position | `row` or `col` is outside the Sudoku board range. |
+| P1: Valid position | `row` and `col` are within the Sudoku board range |
+| P2: Invalid position | `row` or `col` is outside the Sudoku board range |
 
 ##### Functionality-based Characteristic
 C2: Move Conflict
 | Partition | Description |
 |---|---|
-| P1: No conflict | The value does not already exist in the same row, column, or box. |
-| P2: Conflict | The value already exists in the same row, column, or box. |
+| P1: No conflict | The value does not already exist in the same row, column, or box |
+| P2: Conflict | The value already exists in the same row, column, or box |
 
 #### 5. Base Choice
 
