@@ -2,9 +2,8 @@
 ## BCC (Base Choice Coverage)
 ### BCC-1: IsValidMove()
 #### 1.Testable Function
-Function: isValidMove(int row,int col, String Value) 
-<br> This method will check position is in the range and the value is unique in row, column and box.
-
+Function: isValidMove(int row, int col, String value)
+<br> This method checks whether the position is within the board range and the value is unique in the same row, column, and box.
 #### 2. Parameters
 | Parameter | Description |
 |---|---|
@@ -14,8 +13,8 @@ Function: isValidMove(int row,int col, String Value)
 
 #### 3. Return Value
 The method returns a boolean value:
-- 'true' if the move is valid
-- 'false' if the move is invalid
+- `true` if the move is valid
+- `false` if the move is invalid
 
 #### 4. Input Domain Modeling 
 ##### Interface-based characteristic
@@ -78,11 +77,13 @@ The test values are derived from the BCC test requirements and the existing Sudo
 | T4 | `0` | `0` | `"8"` | Valid | Valid | Conflict | `false` |
 
 ### BCC-2: IsSlotAvailable()
-#### 1.Testable Function
+
+#### 1. Testable Function
 Function: isSlotAvailable(int row, int col)
-<br> This method will whether a specific slot is available for use by verifying that the position is within the board range, the slot is empty, and the slot is mutable.
+<br> This method checks whether a specific slot is available for use by verifying that the position is within the board range, the slot is empty, and the slot is mutable.
 
 #### 2. Parameters
+
 | Parameter | Description |
 |---|---|
 | `row` | The row index of the Sudoku board |
@@ -93,8 +94,8 @@ The method returns a boolean value:
 - `true` if the slot is available
 - `false` if the slot is unavailable
 
-#### 4. Input Domain Modeling 
-##### Interface-based characteristic
+#### 4. Input Domain Modeling
+##### Interface-based characteristics
 C1: Row Position
 | Partition | Description |
 |---|---|
@@ -108,7 +109,6 @@ C2: Column Position
 | B2: Invalid column | `col` is outside the Sudoku board range |
 
 ##### Functionality-based characteristic
-
 C3: Slot State
 | Partition | Description |
 |---|---|
@@ -130,8 +130,16 @@ T3 changes only the Column Position characteristic from the base choice while ke
 
 T4 changes only the Slot State characteristic from the base choice while keeping Row Position and Column Position at their base choices.
 
+#### 6. BCC Test Cases
+| Test | Row Position | Column Position | Slot State | Expected Result |
+|---|---|---|---|---|
+| T1 (Base) | A1: Valid | B1: Valid | C1: Available | `true` |
+| T2 | A2: Invalid | B1: Valid | C1: Available | `false` |
+| T3 | A1: Valid | B2: Invalid | C1: Available | `false` |
+| T4 | A1: Valid | B1: Valid | C2: Unavailable | `false` |
+
 #### 7. Test Values
-The test values are derived from the BCC test requirements and the existing Sudoku board in the project.
+The test values are derived from the BCC test requirements and the behavior of the `SudokuPuzzle` class. The test fixture uses a 9×9 board where the slots are initialized as empty (`""`) and mutable. For T4, the slot at `(0,2)` is set to `"8"` to represent an unavailable slot.
 | Test | `row` | `col` | Slot State | Expected Result |
 |---|---:|---:|---|---|
 | T1 (Base) | `0` | `0` | Available | `true` |
