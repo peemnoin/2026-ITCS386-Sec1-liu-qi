@@ -21,8 +21,8 @@ The method returns a boolean value:
 C1: Row Position
 | Partition | Description |
 |---|---|
-| P1: Valid position | `row` is within the Sudoku board range |
-| P2: Invalid position | `row` is outside the Sudoku board range |
+| A1: Valid position | `row` is within the Sudoku board range |
+| A2: Invalid position | `row` is outside the Sudoku board range |
 
 C2: Column Position
 | Partition | Description |
@@ -46,9 +46,10 @@ The base choices are:
 Therefore, the base test is: A1, B1, C1
 
 #### 6. BCC Test Requirements
-
-#### 6. BCC Test Requirements
-Number of tset case = \ [1 + (2-1) + (2-1) + (2-1) = 4 \]
+Number of test cases:
+\[
+1 + (2-1) + (2-1) + (2-1) = 4
+\]
 | Test | Row Position | Column Position | Move Conflict | Expected Result |
 |---|---|---|---|---|
 | T1 (Base) | A1: Valid | B1: Valid | C1: No conflict | `true` |
