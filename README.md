@@ -307,21 +307,6 @@ getValue() relies on inRange(). When the faulty guard accepts a nonexistent cell
 
 The characterization tests retain these inputs and explicitly record the observed outcomes. If the defect is fixed later, these six characterization expectations must be reviewed.
 
-## 8. Coverage interpretation and limitations
-
-- All 9 and 11 feasible combinations are represented, giving **100% feasible-combination coverage for these declared models**.
-- This is not a claim of 100% statement coverage, branch coverage, or correctness.
-- A failed assertion does not mean its input combination was untested. Coverage and pass rate measure different things.
-- Only a 9×9 fixture is used.
-- Valid coordinate representatives use 4; valid boundaries 0 and 8 are not separately exercised.
-- The above-range block uses 9. Values greater than 9 are not tested, and the original implementation behaves differently at 9 versus 10. Thus that coarse block does not describe uniform observed behavior.
-- Suite 1's functionality-based characteristic is derived from the two coordinate characteristics.
-- Suite 2 excludes empty immutable cells, null cell contents, and malformed board states.
-- Reading values is tested; write protection and absence of all possible side effects are not comprehensively tested.
-- The new cases target inRange() and getValue(); the three original test methods target numInRow(), numInCol(), and numInBox().
-- Two logical method-focused suites are grouped in one new Java test class. This is separate from the existing SudokuPuzzleTest class.
-- Characterization assertions preserve observed behavior, including defects. The original correctness-oriented results remain essential evidence of the defect.
-- [ ] Combine this contribution with the other eight suites and the team's project overview.
 
 
 <img width="729" height="943" alt="image" src="https://github.com/user-attachments/assets/4f3a24c8-6bfe-4434-8bc1-884dafe6459e" />
