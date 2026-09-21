@@ -1,6 +1,6 @@
 # 2026-ITCS386-Sec1-liu-qi
 ## BCC (Base Choice Coverage)
-### BCC-1: IsValidMove()
+### BCC-1: isValidMove()
 #### 1.Testable Function
 Function: isValidMove(int row, int col, String value)
 <br> This method checks whether the position is within the board range and the value is unique in the same row, column, and box.
@@ -45,7 +45,7 @@ The base choices are:
 - C3: Move Conflict = C1: No conflict
 Therefore, the base test is: A1, B1, C1
 
-#### 6. BCC Test Requirements
+#### 6.  BCC Test Cases
 | Test | Row Position | Column Position | Move Conflict | Expected Result |
 |---|---|---|---|---|
 | T1 (Base) | A1: Valid | B1: Valid | C1: No conflict | `true` |
@@ -53,22 +53,13 @@ Therefore, the base test is: A1, B1, C1
 | T3 | A1: Valid | B2: Invalid | C1: No conflict | `false` |
 | T4 | A1: Valid | B1: Valid | C2: Conflict | `false` |
 
-T1 is the base test.
-
-T2 changes only the Row Position characteristic from the base
-choice while keeping Column Position and Move Conflict at their
-base choices.
-
-T3 changes only the Column Position characteristic from the base
-choice while keeping Row Position and Move Conflict at their
-base choices.
-
-T4 changes only the Move Conflict characteristic from the base
-choice while keeping Row Position and Column Position at their
-base choices.
+- **T1** is the base test using all base choices.
+- **T2** changes only the Row Position from valid to invalid.
+- **T3** changes only the Column Position from valid to invalid.
+- **T4** changes only the Move Conflict from no conflict to conflict.
 
 #### 7. Test Values
-The test values are derived from the BCC test requirements and the existing Sudoku board used in the project
+The test values are derived from the BCC test requirements and the existing Sudoku board used in the project.
 | Test | `row` | `col` | `value` | Row Position | Column Position | Move Conflict | Expected Result |
 |---|---:|---:|---|---|---|---|---|
 | T1 (Base) | `0` | `0` | `"1"` | Valid | Valid | No conflict | `true` |
@@ -76,7 +67,12 @@ The test values are derived from the BCC test requirements and the existing Sudo
 | T3 | `0` | `-1` | `"1"` | Valid | Invalid | No conflict | `false` |
 | T4 | `0` | `0` | `"8"` | Valid | Valid | Conflict | `false` |
 
-### BCC-2: IsSlotAvailable()
+T1: Position (0,0) is within the board range, and value "1" does not conflict with any existing value in the same row, column, or box.
+T2: row = -1 represents an invalid row position, causing the method to return false.
+T3: col = -1 represents an invalid column position, causing the method to return false.
+T4: Value "8" already exists in the same row at position (0,2), creating a move conflict. Therefore, the method returns false.
+
+### BCC-2: isSlotAvailable()
 
 #### 1. Testable Function
 Function: isSlotAvailable(int row, int col)
@@ -113,7 +109,7 @@ C3: Slot State
 | Partition | Description |
 |---|---|
 | C1: Available slot | The slot is empty and mutable |
-| C2: Unavailable slot | The slot is not empty |
+| C2: Unavailable slot |The slot is either not empty or not mutable |
 
 #### 5. Base Choice
 The base choices are:
@@ -121,14 +117,6 @@ The base choices are:
 - C2: Column Position = B1: Valid column
 - C3: Slot State = C1: Available slot
 Therefore, the base test is: A1, B1, C1
-
-T1 is the base test.
-
-T2 changes only the Row Position characteristic from the base choice while keeping Column Position and Slot State at their base choices.
-
-T3 changes only the Column Position characteristic from the base choice while keeping Row Position and Slot State at their base choices.
-
-T4 changes only the Slot State characteristic from the base choice while keeping Row Position and Column Position at their base choices.
 
 #### 6. BCC Test Cases
 | Test | Row Position | Column Position | Slot State | Expected Result |
@@ -138,6 +126,11 @@ T4 changes only the Slot State characteristic from the base choice while keeping
 | T3 | A1: Valid | B2: Invalid | C1: Available | `false` |
 | T4 | A1: Valid | B1: Valid | C2: Unavailable | `false` |
 
+- **T1** is the base test using all base choices.
+- **T2** changes only the Row Position from valid to invalid.
+- **T3** changes only the Column Position from valid to invalid.
+- **T4** changes only the Slot State from available to unavailable.
+
 #### 7. Test Values
 The test values are derived from the BCC test requirements and the behavior of the `SudokuPuzzle` class. The test fixture uses a 9×9 board where the slots are initialized as empty (`""`) and mutable. For T4, the slot at `(0,2)` is set to `"8"` to represent an unavailable slot.
 | Test | `row` | `col` | Slot State | Expected Result |
@@ -146,3 +139,11 @@ The test values are derived from the BCC test requirements and the behavior of t
 | T2 | `-1` | `0` | Available | `false` |
 | T3 | `0` | `-1` | Available | `false` |
 | T4 | `0` | `2` | Unavailable | `false` |
+
+T1: Position (0,0) is within the board range, and the slot is empty and mutable, so it is available.
+T2: row = -1 represents an invalid row position, causing the method to return false.
+T3: col = -1 represents an invalid column position, causing the method to return false.
+T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore unavailable. The method returns false.
+
+#### 8. Test Execution Results
+<img width="843" height="761" alt="BCC_Test" src="https://github.com/user-attachments/assets/a333c4aa-7456-4afc-9396-d0fa798175e2" />
