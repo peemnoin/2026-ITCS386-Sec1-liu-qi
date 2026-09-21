@@ -518,6 +518,8 @@ Using the same `SudokuPuzzleForTesting` fixture: slot `(0,0)` holds value `"5"` 
 |---|---:|---:|---|---|---|
 | T1 | `0` | `0` | Boundary column | Has value | `""` |
 | T2 | `0` | `2` | Non-boundary column | Already empty | `""` |
+<img width="751" height="444" alt="image" src="https://github.com/user-attachments/assets/27179eef-36ac-44d4-afa1-d3dfe34bbf18" />
+
 
 ## 6. PWC — Sunattha Boonl-or
 
@@ -670,6 +672,8 @@ The fixture uses a 9x9 board that starts empty and mutable. Specific cells are a
 | T3 | `-1` | `0` | `"5"` | `(0,0)` locked | `""` |
 | T4 | `0` | `0` | `"X"` | `(0,0)` locked | `""` |
 | T5 | `-1` | `-1` | `"X"` | `(0,4)="5"` conflict, mutable | `""` |
+<img width="699" height="425" alt="image" src="https://github.com/user-attachments/assets/572d3a41-e53b-4b41-8652-4da20109fa25" />
+
 
 ## 7. MBCC — Wirunya Kaewthong
 
@@ -1040,6 +1044,9 @@ The class was compiled and executed using **JUnit 4.12**. All 40 MBCC test metho
 | numInBox: NB01-NB12 | 12 | 12 | 0 |
 | **Total** | **40** | **40** | **0** |
 
+<img width="667" height="915" alt="image" src="https://github.com/user-attachments/assets/120c6c6f-77a8-4956-b775-16ec15d6caed" />
+
+
 **Verification date:** 20 September 2026. Compilation used OpenJDK 17.0.20 with Java 8 target compatibility (`--release 8`) and produced no compiler diagnostics. The recorded verification used the JUnit runner directly; these results are not presented as a verified Gradle run. A successful Gradle report from the submission environment should accompany the required build-framework demonstration.
 
 The tests passed for the selected inputs and expected outcomes. This does not establish correct behaviour for inputs outside the documented models.
@@ -1250,6 +1257,9 @@ The test values are derived from the BCC test requirements and the behavior of t
 | T2 | `-1` | `0` | Available | `false` |
 | T3 | `0` | `-1` | Available | `false` |
 | T4 | `0` | `2` | Unavailable | `false` |
+
+<img width="706" height="614" alt="image" src="https://github.com/user-attachments/assets/c6208fa8-f8f3-494e-8073-8b0e876963e2" />
+
 
 ## 9. Consolidated results and known defect
 
