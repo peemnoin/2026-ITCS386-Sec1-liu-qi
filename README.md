@@ -1,7 +1,7 @@
 # 2026-ITCS386-Sec1-liu-qi
 ## BCC (Base Choice Coverage)
 ### BCC-1: isValidMove()
-#### 1.Testable Function
+#### 1. Testable Function
 Function: isValidMove(int row, int col, String value)
 <br> This method checks whether the position is within the board range and the value is unique in the same row, column, and box.
 #### 2. Parameters
