@@ -15,7 +15,7 @@ This README combines the five members' input space partitioning (ISP) reports. I
 - [3. Build, execution, and documentation conventions](#3-build-execution-and-documentation-conventions)
 - [4. ACoC — Veerakron No-in](#4-acoc--veerakron-no-in)
 - [5. ECC — Tinakome Rasripenngam](#5-ecc--tinakome-rasripenngam)
-- [6. PWC — Sunattha Boonl-or](#6-pwc--sunattha-boonl-or)
+- [6. PWC — Sunattha Boonla-or](#6-pwc--sunattha-boonla-or)
 - [7. MBCC — Wirunya Kaewthong](#7-mbcc--wirunya-kaewthong)
 - [8. BCC — Piyada Chalermnontakarn](#8-bcc--piyada-chalermnontakarn)
 - [9. Consolidated results and known defect](#9-consolidated-results-and-known-defect)
@@ -34,8 +34,8 @@ The work applies five ISP combination criteria: All Combinations Coverage (ACoC)
 | Member | StudentID | Criterion | Logical suites | Designed scenarios |
 |---|---|---|---:|---:|
 | Veerakron No-in | 6688164 | ACoC | 2 | 20 |
-| Tinakome Rasripenngam | 6688 | ECC | 2 | 4 |
-| Sunattha Boonl-o | 6688 | PWC | 2 | 9 |
+| Tinakome Rasripenngam | 6688095 | ECC | 2 | 4 |
+| Sunattha Boonl-or | 6688009 | PWC | 2 | 9 |
 | Wirunya Kaewthong | 6688172 | MBCC | 2 | 40 |
 | Piyada Chalermnontakarn | 6688239 | BCC | 2 | 8 |
 | **Total** | | **5 criteria** | **10** | **81** |
@@ -521,7 +521,7 @@ Using the same `SudokuPuzzleForTesting` fixture: slot `(0,0)` holds value `"5"` 
 <img width="751" height="444" alt="image" src="https://github.com/user-attachments/assets/27179eef-36ac-44d4-afa1-d3dfe34bbf18" />
 
 
-## 6. PWC — Sunattha Boonl-or
+## 6. PWC — Sunattha Boonla-or
 
 **Owner:** Sunattha Boonl-or (Grace)  
 **Numbering:** Subsection numbers below are local to this contribution.
@@ -1050,30 +1050,6 @@ The class was compiled and executed using **JUnit 4.12**. All 40 MBCC test metho
 **Verification date:** 20 September 2026. Compilation used OpenJDK 17.0.20 with Java 8 target compatibility (`--release 8`) and produced no compiler diagnostics. The recorded verification used the JUnit runner directly; these results are not presented as a verified Gradle run. A successful Gradle report from the submission environment should accompany the required build-framework demonstration.
 
 The tests passed for the selected inputs and expected outcomes. This does not establish correct behaviour for inputs outside the documented models.
-
-#### Running only the MBCC class through Gradle
-
-Place the file in `src/test/java/sudoku/` and ensure the filename is exactly `SudokuMBCCTest.java`, matching its public class name. Run the command from the project directory containing `build.gradle` and the Gradle wrapper.
-
-Windows PowerShell:
-
-```powershell
-.\gradlew.bat test --tests "sudoku.SudokuMBCCTest"
-```
-
-macOS/Linux:
-
-```bash
-bash gradlew test --tests "sudoku.SudokuMBCCTest"
-```
-
-The filtered run selects the 40 methods in this MBCC class. The Gradle HTML test report is generated at:
-
-```text
-build/reports/tests/test/index.html
-```
-
-Use a JDK compatible with the project's Gradle wrapper. A direct JUnit verification under Java 17 does not establish that the supplied Gradle 5.2.1 wrapper can run under Java 17. If using IntelliJ for the demonstration, configure it to run tests through Gradle.
 
 ### 7. Interpretation of the results
 
