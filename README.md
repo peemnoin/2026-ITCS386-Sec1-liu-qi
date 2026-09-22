@@ -92,11 +92,6 @@ Each contribution documents the tested function, inputs and outputs, interface-b
 
 **Owner:** Veerakron No-in  
 **Numbering:** Subsection numbers below are local to this contribution.
-
-**Contributor:** Veerakron No-in  
-**Team:** liu-qi  
-**Production class:** `sudoku.SudokuPuzzle`  
-**Test class:** `sudoku.SudokuACoCTest`  
 **Scope:** Two logical test suites: `inRange()` and `getValue()`.
 
 > This section covers the contributor's two suites. The original production code is not modified.
@@ -679,11 +674,6 @@ The fixture uses a 9x9 board that starts empty and mutable. Specific cells are a
 
 **Owner:** Wirunya Kaewthong (Ingeye)  
 **Numbering:** Subsection numbers below are local to this contribution.
-
-**Course:** ITCS386 Software Verification and Validation  
-**Assignment:** Project 1 - Unit Testing for Open-Source Software  
-**Test file:** `src/test/java/sudoku/SudokuMBCCTest.java`  
-**Framework:** JUnit 4.12; the project uses Gradle
 
 ### 1. Objective and scope
 
