@@ -877,26 +877,72 @@ T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore un
 <img width="706" height="614" alt="image" src="https://github.com/user-attachments/assets/c6208fa8-f8f3-494e-8073-8b0e876963e2" />
 
 #### 9. Test Count
-For BCC-1, there are three characteristics, and each characteristic has two blocks:
+### Calculation for BCC-1: `isValidMove()`
+
+- **Base Tests (M):** 1 (Base Choice: Valid row, Valid column, No conflict)
+- **Characteristics (Q):** 3 (C1, C2, C3)
+- **Partition Counts & Non-Base Blocks (Bᵢ − mᵢ):**
+  - **C₁ (Row Position):** B₁ = 2, m₁ = 1 → B₁ − m₁ = 2 − 1 = 1
+  - **C₂ (Column Position):** B₂ = 2, m₂ = 1 → B₂ − m₂ = 2 − 1 = 1
+  - **C₃ (Move Conflict):** B₃ = 2, m₃ = 1 → B₃ − m₃ = 2 − 1 = 1
+
+Applying the BCC calculation formula:
+
 \[
-N_{BCC} = 1 + (2-1) + (2-1) + (2-1)
+T_{BCC} = M\left[1+\sum_{i=1}^{Q}(B_i-m_i)\right]
 \]
 
 \[
-N_{BCC} = 4
+T_{isValidMove}
+= 1\left[1+(1+1+1)\right]
+= 1[4]
+= 4 \text{ test cases}
 \]
-BCC-1 requires **4 test cases*
 
-BCC-2, there are also three characteristics, and each characteristic has two blocks:
+Therefore, **BCC-1 requires 4 test cases**.
+
+---
+
+### Calculation for BCC-2: `isSlotAvailable()`
+
+- **Base Tests (M):** 1 (Base Choice: Valid row, Valid column, Available slot)
+- **Characteristics (Q):** 3 (C1, C2, C3)
+- **Partition Counts & Non-Base Blocks (Bᵢ − mᵢ):**
+  - **C₁ (Row Position):** B₁ = 2, m₁ = 1 → B₁ − m₁ = 2 − 1 = 1
+  - **C₂ (Column Position):** B₂ = 2, m₂ = 1 → B₂ − m₂ = 2 − 1 = 1
+  - **C₃ (Slot State):** B₃ = 2, m₃ = 1 → B₃ − m₃ = 2 − 1 = 1
+
+Applying the BCC calculation formula:
+
 \[
-N_{BCC} = 1 + (2-1) + (2-1) + (2-1)
+T_{BCC} = M\left[1+\sum_{i=1}^{Q}(B_i-m_i)\right]
 \]
 
 \[
-N_{BCC} = 4
+T_{isSlotAvailable}
+= 1\left[1+(1+1+1)\right]
+= 1[4]
+= 4 \text{ test cases}
 \]
 
-Therefore, BCC-2 requires **4 test cases**.
+Therefore, **BCC-2 requires 4 test cases**.
+
+---
+
+### Total Suite Test Count
+
+\[
+T_{Total}
+= T_{isValidMove} + T_{isSlotAvailable}
+\]
+
+\[
+T_{Total}
+= 4 + 4
+= 8 \text{ test cases}
+\]
+
+Therefore, the **total BCC test count is 8 test cases**.
 
 ## 9. Known defect in the production code
 
