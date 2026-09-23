@@ -70,25 +70,25 @@ public class SudokuACoCTest {
     public void testIR05_ValidRowValidColumn() {
         assertTrue(puzzle.inRange(4, 4));
     }
-    //Should be output False
+
     @Test
     public void testIR06_ValidRowAboveRangeColumn() {
-        assertTrue(puzzle.inRange(4, 9));
+        assertFalse(puzzle.inRange(4, 9));
     }
 
     @Test
     public void testIR07_AboveRangeRowNegativeColumn() {
         assertFalse(puzzle.inRange(9, -1));
     }
-//Should be output False
+
     @Test
     public void testIR08_AboveRangeRowValidColumn() {
-        assertTrue(puzzle.inRange(9, 4));
+        assertFalse(puzzle.inRange(9, 4));
     }
-    //Should be output False
+
     @Test
     public void testIR09_AboveRangeRowAboveRangeColumn() {
-        assertTrue(puzzle.inRange(9, 9));
+        assertFalse(puzzle.inRange(9, 9));
     }
 
     /*
@@ -161,24 +161,24 @@ public class SudokuACoCTest {
 
         assertEquals("7", puzzle.getValue(4, 4));
     }
-    //Should be output expected row 4 , col 9
+
     @Test
     public void testGV08_ValidRowAboveRangeColumn() {
-        assertEquals("", puzzle.getValue(4, 8));
+        assertEquals("", puzzle.getValue(4, 9));
     }
 
     @Test
     public void testGV09_AboveRangeRowNegativeColumn() {
         assertEquals("", puzzle.getValue(9, -1));
     }
-    //Should be output expected row 9 , col 4
+
     @Test
     public void testGV10_AboveRangeRowValidColumn() {
-        assertEquals("", puzzle.getValue(8, 4));
+        assertEquals("", puzzle.getValue(9, 4));
     }
-    //Should be output expected row 9 , col 9
+
     @Test
     public void testGV11_AboveRangeRowAboveRangeColumn() {
-        assertEquals("", puzzle.getValue(8, 8));
+        assertEquals("", puzzle.getValue(9, 9));
     }
 }
