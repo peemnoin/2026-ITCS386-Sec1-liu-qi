@@ -1014,12 +1014,16 @@ T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore un
 
 Applying the BCC calculation formula:
 
-$$ T_BCC = M [1 + Σ(Bᵢ − mᵢ)] $$
+$$
+T_{BCC} = M\left[1+\sum_{i=1}^{Q}(B_i-m_i)\right]
+$$
 
-$$ T_isValidMove = 1[1+(1+1+1+1+1)] $$
-
-$$ T_isValidMove = 6 test cases $$ 
-
+$$
+T_{isValidMove}
+= 1\left[1+(1+1+1+1+1)\right]
+= 1[6]
+= 6\text{ test cases}
+$$
 
 Therefore, BCC-1 requires 6 test cases.
 
