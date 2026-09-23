@@ -25,44 +25,37 @@
 
 #### 4. Input Domain Modeling
 
-**Interface-based Characteristics**
+#### Interface-based Characteristics
 
-* **C1: Row Position**
-  * **A1: Interior row** — `row = 4`
-  * **A2: First row** — `row = 0`
-  * **A3: Last row** — `row = 8`
+| Characteristic | Partition ID | Partition Description | Test Value / Condition |
+| :--- | :--- | :--- | :--- |
+| **C1: Row Position** | A1 | Interior row | `row = 4` |
+| | A2 | First row | `row = 0` |
+| | A3 | Last row | `row = 8` |
+| **C2: Column Position** | B1 | Interior column | `col = 4` |
+| | B2 | First column | `col = 0` |
+| | B3 | Last column | `col = 8` |
+| **C3: Input Value Category** | C1 | Allowed digit | `"5"` |
+| | C2 | Unsupported string | `"X"` |
+| | C3 | Empty string | `""` |
+| | C4 | Null reference | `null` |
+| **C7: Requested Mutability** | G1 | Mutable | `true` |
+| | G2 | Locked | `false` |
 
-* **C2: Column Position**
-  * **B1: Interior column** — `col = 4`
-  * **B2: First column** — `col = 0`
-  * **B3: Last column** — `col = 8`
 
-* **C3: Input Value Category**
-  * **C1: Allowed digit** — `"5"`
-  * **C2: Unsupported string** — `"X"`
-  * **C3: Empty string** — `""`
-  * **C4: Null reference** — `null`
+#### Functionality-based Characteristics
 
-* **C7: Requested Mutability**
-  * **G1: Mutable** — `true`
-  * **G2: Locked** — `false`
-
-**Functionality-based Characteristics**
-
-* **C4: Move Conflict**
-  * **D1: No conflict** — `NONE`
-  * **D2: Row conflict** — `ROW`
-  * **D3: Column conflict** — `COLUMN`
-  * **D4: Box conflict** — `BOX`
-  * **D5: Multiple conflicts** — `MULTIPLE`
-
-* **C5: Target Current Mutability**
-  * **E1: Currently editable** — `true`
-  * **E2: Currently locked** — `false`
-
-* **C6: Existing Target Content**
-  * **F1: Empty cell** — `""`
-  * **F2: Different allowed digit** — `"2"`
+| Characteristic | Partition ID | Partition Description | Test Value / Condition |
+| :--- | :--- | :--- | :--- |
+| **C4: Move Conflict** | D1 | No conflict | `NONE` |
+| | D2 | Row conflict | `ROW` |
+| | D3 | Column conflict | `COLUMN` |
+| | D4 | Box conflict | `BOX` |
+| | D5 | Multiple conflicts | `MULTIPLE` |
+| **C5: Target Current Mutability** | E1 | Currently editable | `true` |
+| | E2 | Currently locked | `false` |
+| **C6: Existing Target Content** | F1 | Empty cell | `""` |
+| | F2 | Different allowed digit | `"2"` |
 
 #### 5. Base Choice
 
