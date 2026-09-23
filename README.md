@@ -338,7 +338,8 @@ The fixture `SudokuPuzzleForTesting` is a 9x9 board created fresh before each te
 ### ECC-2: makeSlotEmpty()
 
 #### 1. Testable Function
-```javamakeSlotEmpty(int row, int col)
+```java
+makeSlotEmpty(int row, int col)
 ```
 <br> This method clears the slot at the given position by setting it to an empty string, regardless of the value stored there before.
 
