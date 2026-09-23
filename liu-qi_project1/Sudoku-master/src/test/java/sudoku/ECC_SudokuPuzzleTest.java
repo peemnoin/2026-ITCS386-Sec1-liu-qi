@@ -1,4 +1,3 @@
-
 /* Copyright (C) 2026 Tinakome Rasripenngam - All Rights Reserved
  * You may use, distribute and modify this code under the terms of the MIT license.
  */
@@ -18,20 +17,36 @@ public class ECC_SudokuPuzzleTest {
     }
 
     // isSlotMutable()
+    // Column Position (Boundary/Non-boundary) x Mutability State (Mutable/Immutable)
+
+    // T1
     @Test
-    public void testIsSlotMutable_ECC() {
+    public void testIsSlotMutableBoundaryColumnMutable() {
         Assert.assertTrue(puzzle.isSlotMutable(0, 0));
+    }
+
+    // T2
+    @Test
+    public void testIsSlotMutableNonBoundaryColumnImmutable() {
         Assert.assertFalse(puzzle.isSlotMutable(0, 1));
     }
 
     // makeSlotEmpty()
+    // Column Position (Boundary/Non-boundary) x Prior Cell Content (Has value/Already empty)
+
+    // T1
     @Test
-    public void testMakeSlotEmpty_ECC() {
-        // T1
+    public void testMakeSlotEmptyBoundaryColumnHasValue() {
+        Assert.assertEquals("5", puzzle.getValue(0, 0)); // precondition: slot has a value
         puzzle.makeSlotEmpty(0, 0);
         Assert.assertEquals("", puzzle.getValue(0, 0));
+        Assert.assertEquals("3", puzzle.getValue(0, 1)); // neighbouring slot is not affected
+    }
 
-        // T2
+    // T2
+    @Test
+    public void testMakeSlotEmptyNonBoundaryColumnAlreadyEmpty() {
+        Assert.assertEquals("", puzzle.getValue(0, 2)); // precondition: slot is already empty
         puzzle.makeSlotEmpty(0, 2);
         Assert.assertEquals("", puzzle.getValue(0, 2));
     }
@@ -40,10 +55,7 @@ public class ECC_SudokuPuzzleTest {
 
         public SudokuPuzzleForTesting() {
             super(9, 9, 3, 3,
-                    new String[] {
-                            "1", "2", "3", "4", "5",
-                            "6", "7", "8", "9"
-                    });
+                    new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9"});
 
             this.board[0][0] = "5";
             this.board[0][1] = "3";
