@@ -27,9 +27,13 @@ public class ECC_SudokuPuzzleTest {
     // makeSlotEmpty()
     @Test
     public void testMakeSlotEmpty_ECC() {
+        // T1
         puzzle.makeSlotEmpty(0, 0);
-
         Assert.assertEquals("", puzzle.getValue(0, 0));
+
+        // T2
+        puzzle.makeSlotEmpty(0, 2);
+        Assert.assertEquals("", puzzle.getValue(0, 2));
     }
 
     private class SudokuPuzzleForTesting extends SudokuPuzzle {
