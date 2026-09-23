@@ -280,7 +280,9 @@ The characterization tests retain these inputs and explicitly record the observe
 ### ECC-1: isSlotMutable()
 
 #### 1. Testable Function
-Function: isSlotMutable(int row, int col)
+```java
+isSlotMutable(int row, int col)
+```
 <br> This method returns whether the slot at the given position is currently editable, based only on the internal `mutable` flag of that cell.
 
 #### 2. Parameters
@@ -336,7 +338,8 @@ The fixture `SudokuPuzzleForTesting` is a 9x9 board created fresh before each te
 ### ECC-2: makeSlotEmpty()
 
 #### 1. Testable Function
-Function: makeSlotEmpty(int row, int col)
+```javamakeSlotEmpty(int row, int col)
+```
 <br> This method clears the slot at the given position by setting it to an empty string, regardless of the value stored there before.
 
 #### 2. Parameters
