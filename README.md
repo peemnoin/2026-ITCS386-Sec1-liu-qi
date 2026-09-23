@@ -553,7 +553,7 @@ The fixture uses a 9x9 board that starts empty and mutable. Specific cells are a
 | T5 | `-1` | `-1` | `"X"` | `(0,4)="5"` conflict, mutable | `""` |
 
 #### 8. Test Execution Results
-<img width="699" height="425" alt="image" src="https://github.com/user-attachments/assets/572d3a41-e53b-4b41-8652-4da20109fa25" />
+<img width="707" height="409" alt="Screenshot 2569-09-23 at 21 54 46" src="https://github.com/user-attachments/assets/ed79df7b-077f-46f0-83b0-71a8ff13dc9a" />
 
 ## 7. MBCC — Wirunya Kaewthong
 
