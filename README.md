@@ -63,285 +63,184 @@ The HTML test report is generated at `build/reports/tests/test/index.html`. The 
 ## 4. ACoC — Veerakron No-in
 
 **Owner:** Veerakron No-in  
-**Numbering:** Subsection numbers below are local to this contribution.
-**Scope:** Two logical test suites: `inRange()` and `getValue()`.
+**Numbering:** Subsection numbers below are local to this contribution.  
+**Scope:** Two logical test suites: `inRange()` (9 tests) and `getValue()` (11 tests), giving **20 tests** in total.
 
-> Scope review: The ACoC suites cover the documented input partitions for inRange() and getValue(). The inRange() boundary cases expose the production method's inclusive upper-bound behavior, where index 9 is accepted although valid indices on a 9×9 board are 0–8. The expected results should therefore distinguish intended boundary behavior from the observed implementation behavior. See Section 10.
+Each test uses a fresh 9×9 board with 3×3 boxes and values `"1"`–`"9"`. Cells start empty (`""`) and mutable. Valid array indices are 0–8.
 
+The expected results below follow the characterization version described in this report: they record the original program's behaviour, including its index-9 defect. They are not a claim that the defect is correct or that the Java tests have been run successfully. See Section 9 for the defect details.
 
-### 3. Shared fixture and test isolation
+### ACoC-1: inRange()
 
-Before each test method, JUnit executes the method annotated with `@Before`:
-
-```java
-@Before
-public void setUp() {
-    puzzle = new SudokuPuzzle(
-        9, 9, 3, 3,
-        new String[]{"1","2","3","4","5","6","7","8","9"}
-    );
-}
-```
-
-This creates a new 9-row, 9-column board with 3×3 boxes. The constructor initializes all cells to `""` and all mutability flags to `true`.
-
-- Valid array indices are 0 through 8; 9 is the number of rows/columns, not the last index.
-- Each test receives a fresh board and does not depend on test execution order.
-- The getValue() tests prepare board and mutable fields directly in package sudoku. This avoids depending on makeMove() for fixture construction.
-- No external resource needs cleanup, so `@After` is unnecessary.
-- JUnit discovers one test class containing 20 test methods. The two suites below are logical groups documented in comments and this report.
-
-### ACoC-1: inRange(row, col)
-#### 1.Testable Function
+#### 1. Testable Function
 
 ```java
 public boolean inRange(int row, int col)
 ```
-Check the return value for all combinations of the modeled row and column categories. The current version explicitly records the original implementation's acceptance of coordinates equal to the board size.
+
+This method checks whether the given row and column are accepted as within the board range.
 
 #### 2. Parameters
+
 | Parameter | Description |
 |---|---|
-| row | int: requested row index |
-| col | int: requested column index |
-#### 3. Return Value
-The method returns a boolean value:
+| `row` | Requested row index (`int`) |
+| `col` | Requested column index (`int`) |
 
-- `true` if the coordinates are accepted as being within range
-- `false` if the coordinates are outside the range
+#### 3. Return Value and Exceptional Behaviour
 
-Exception for modeled cases | None expected; this method only compares integers |
+The method returns `true` for accepted coordinates and `false` for rejected coordinates. No exception is expected because it only compares integers.
+
+The original implementation also accepts index `9` when the other coordinate is between `0` and `9`. This is a known boundary defect.
 
 #### 4. Input Domain Modeling
 
-| ID | Characteristic | Type | Blocks and representatives |
-|---|---|---|---|
-| C1 | Row relative to array bounds | Interface-based | B1: row < 0 → -1; B2: 0 ≤ row < 9 → 4; B3: row ≥ 9 → 9 |
-| C2 | Column relative to array bounds | Interface-based | B1: col < 0 → -1; B2: 0 ≤ col < 9 → 4; B3: col ≥ 9 → 9 |
-| C3 | Coordinate identifies an existing board cell | Functionality-based, derived | EXISTS / NO_CELL |
+##### Interface-based characteristics
 
-C1 and C2 are disjoint and collectively cover integer coordinates. The representatives -1 and 9 lie immediately outside the valid range, making them useful boundary probes. The value 4 represents an interior coordinate.
+| ID | Characteristic | B1: Below range | B2: Valid | B3: At or above size |
+|---|---|---|---|---|
+| C1 | Row position | `row < 0`; use `-1` | `0 ≤ row < 9`; use `4` | `row ≥ 9`; use `9` |
+| C2 | Column position | `col < 0`; use `-1` | `0 ≤ col < 9`; use `4` | `col ≥ 9`; use `9` |
 
-**Constraint:** C3=EXISTS iff C1=B2 and C2=B2. Otherwise C3=NO_CELL. This property describes actual array-cell existence; it is not taken from the possibly incorrect return value of inRange().
+##### Functionality-based characteristic
 
-**Model limitation:** C3 is fully determined by C1/C2 and adds no independent test dimension. Its classification should be explained transparently; it should not be presented as additional independent coverage.
+| ID | Characteristic | Blocks |
+|---|---|---|
+| C3 | Coordinate identifies an existing board cell | EXISTS / NO_CELL |
 
-#### 4 Why there are nine tests
+**Constraint:** C3 is EXISTS only when C1 and C2 are both B2; otherwise it is NO_CELL. C3 is derived from C1 and C2, so it adds no independent combinations.
 
-The unconstrained product is 3×3×2=18 combinations. For each of the nine row/column block pairs, exactly one C3 value is feasible. Therefore nine combinations are excluded by the cell-existence constraint, leaving:
+#### 5. Combination Strategy (All Combinations Coverage)
 
-**18 − 9 = 9 feasible test requirements.**
+ACoC covers every feasible combination of the modeled blocks.
 
-All nine row/column block pairs appear exactly once in the table below. ACoC requires all feasible block combinations, not every possible integer input.
+- Before constraints: `3 × 3 × 2 = 18` combinations.
+- Each of the nine row/column pairs permits only one C3 value, excluding nine combinations.
+- Required tests: **18 − 9 = 9**.
 
-#### 4.5 Concrete values, goals, and current expected outcomes
+#### 6. ACoC Test Requirements
 
-Expected values below belong to the **current characterization version**.
+| Test | Row block (C1) | Column block (C2) | Cell existence (C3) | Expected Result |
+|---|---|---|---|---|
+| IR01 | B1 | B1 | NO_CELL | `false` |
+| IR02 | B1 | B2 | NO_CELL | `false` |
+| IR03 | B1 | B3 | NO_CELL | `false` |
+| IR04 | B2 | B1 | NO_CELL | `false` |
+| IR05 | B2 | B2 | EXISTS | `true` |
+| IR06 | B2 | B3 | NO_CELL | `true` |
+| IR07 | B3 | B1 | NO_CELL | `false` |
+| IR08 | B3 | B2 | NO_CELL | `true` |
+| IR09 | B3 | B3 | NO_CELL | `true` |
 
-| ID | Blocks (C1, C2, C3) | row | col | Goal | Current expected |
-|---|---|---:|---:|---|---|
-| IR01 | B1, B1, NO_CELL | -1 | -1 | Check coordinate classification for this block pair | `false` |
-| IR02 | B1, B2, NO_CELL | -1 | 4 | Check coordinate classification for this block pair | `false` |
-| IR03 | B1, B3, NO_CELL | -1 | 9 | Check coordinate classification for this block pair | `false` |
-| IR04 | B2, B1, NO_CELL | 4 | -1 | Check coordinate classification for this block pair | `false` |
-| IR05 | B2, B2, EXISTS | 4 | 4 | Check coordinate classification for this block pair | `true` |
-| IR06 | B2, B3, NO_CELL | 4 | 9 | Record erroneous acceptance of a coordinate equal to size | `true` |
-| IR07 | B3, B1, NO_CELL | 9 | -1 | Check coordinate classification for this block pair | `false` |
-| IR08 | B3, B2, NO_CELL | 9 | 4 | Record erroneous acceptance of a coordinate equal to size | `true` |
-| IR09 | B3, B3, NO_CELL | 9 | 9 | Record erroneous acceptance of a coordinate equal to size | `true` |
+#### 7. Test Values
 
-#### 4.6 Test method mapping
+| Test | `row` | `col` | Expected Result |
+|---|---:|---:|---|
+| IR01 | -1 | -1 | `false` |
+| IR02 | -1 | 4 | `false` |
+| IR03 | -1 | 9 | `false` |
+| IR04 | 4 | -1 | `false` |
+| IR05 | 4 | 4 | `true` |
+| IR06 | 4 | 9 | `true` |
+| IR07 | 9 | -1 | `false` |
+| IR08 | 9 | 4 | `true` |
+| IR09 | 9 | 9 | `true` |
 
-| ID | JUnit test method |
-|---|---|
-| IR01 | `testIR01_NegativeRowNegativeColumn` |
-| IR02 | `testIR02_NegativeRowValidColumn` |
-| IR03 | `testIR03_NegativeRowAboveRangeColumn` |
-| IR04 | `testIR04_ValidRowNegativeColumn` |
-| IR05 | `testIR05_ValidRowValidColumn` |
-| IR06 | `testIR06_CurrentBehaviorAcceptsColumnEqualToSize` |
-| IR07 | `testIR07_AboveRangeRowNegativeColumn` |
-| IR08 | `testIR08_CurrentBehaviorAcceptsRowEqualToSize` |
-| IR09 | `testIR09_CurrentBehaviorAcceptsBothEqualToSize` |
+IR06, IR08, and IR09 expect `true` to record the known defect. The correct array-bounds result would be `false`.
 
-IR06, IR08, and IR09 use assertTrue() only to characterize the known defect. Under the correct array-bounds contract, their expected return value remains false.
+### ACoC-2: getValue()
 
-### 5. Suite 2 — getValue(row, col)
-
-#### 5.1 Testable function and objective
+#### 1. Testable Function
 
 ```java
 public String getValue(int row, int col)
 ```
 
-Verify the returned content of modeled existing cells and characterize the behavior for nonexistent coordinates. Reading filled mutable and immutable cells demonstrates that both can be read; it does not test whether writes to immutable cells are prevented.
+This method reads the value stored at the given board position.
 
-#### 5.2 Parameters, returns, and exceptional behavior
+#### 2. Parameters
 
-| Item | Description |
+| Parameter | Description |
 |---|---|
-| row / col | int coordinates |
-| Implicit inputs | Board dimensions, cell contents, and mutability state |
-| Return type | String |
-| Existing cell | Returns its stored value |
-| Rejected coordinate | Returns `""` when inRange() returns false |
-| Current boundary behavior | Throws ArrayIndexOutOfBoundsException for (4,9), (9,4), and (9,9) |
-| Correctness expectation for those boundary cases | The coordinate should be rejected and `""` returned through the existing fallback |
+| `row` | Requested row index (`int`) |
+| `col` | Requested column index (`int`) |
 
-The out-of-range fallback expectation is inferred from the method's guard and final return statement, together with the actual array bounds. The exceptions above are observed implementation defects, not a documented promise that the method should throw.
+The fixture also supplies the cell content and mutability state for existing cells.
 
-#### 5.3 Input domain model
+#### 3. Return Value and Exceptional Behaviour
 
-| ID | Characteristic | Type | Blocks |
-|---|---|---|---|
-| C1 | Row relative to bounds | Interface-based | B1: negative (-1); B2: valid (4); B3: above range (9) |
-| C2 | Column relative to bounds | Interface-based | B1: negative (-1); B2: valid (4); B3: above range (9) |
-| C3 | State of the addressed cell | Functionality-based | EMPTY / PLAYER / GIVEN / NO_CELL |
+The method returns the stored `String` for an existing cell, or `""` when `inRange()` rejects the coordinates.
 
-| C3 block | Fixture |
-|---|---|
-| EMPTY | board[row][col]=`""`, mutable[row][col]=true |
-| PLAYER | board[row][col]=`"5"`, mutable[row][col]=true |
-| GIVEN | board[row][col]=`"7"`, mutable[row][col]=false |
-| NO_CELL | Requested coordinate does not exist; do not access it during setup |
+For `(4,9)`, `(9,4)`, and `(9,9)`, the original implementation throws `ArrayIndexOutOfBoundsException` because its range check incorrectly accepts index `9`. These cases record that exception as their expected outcome.
 
-PLAYER and GIVEN are scenario labels, not stored provenance information. The fixture distinguishes filled mutable and filled immutable cells.
+#### 4. Input Domain Modeling
 
-**Declared scope:** Initialized 9×9 boards with non-null String cell contents. Empty immutable cells are excluded from this model even though the implementation can produce them. Therefore this model is exhaustive only within its declared scope.
+##### Interface-based characteristics
 
-#### 5.4 Constraints and why there are eleven tests
+| ID | Characteristic | B1: Below range | B2: Valid | B3: At or above size |
+|---|---|---|---|---|
+| C1 | Row position | `row < 0`; use `-1` | `0 ≤ row < 9`; use `4` | `row ≥ 9`; use `9` |
+| C2 | Column position | `col < 0`; use `-1` | `0 ≤ col < 9`; use `4` | `col ≥ 9`; use `9` |
 
-- If C1=B2 and C2=B2, C3 must be EMPTY, PLAYER, or GIVEN.
-- For every other coordinate pair, C3 must be NO_CELL.
-- A valid coordinate cannot have NO_CELL.
-- An invalid coordinate cannot have a stored EMPTY, PLAYER, or GIVEN cell.
+##### Functionality-based characteristic
 
-The unconstrained product contains 3×3×4=36 combinations.
+C3: State of the addressed cell
 
-| Coordinate category | Number of coordinate block pairs | Feasible states per pair | Feasible combinations |
-|---|---:|---:|---:|
-| Both coordinates valid | 1 | 3 | 3 |
-| At least one coordinate invalid | 8 | 1 | 8 |
-| Total | 9 | — | 11 |
-
-There are 25 infeasible combinations: one valid-coordinate/NO_CELL combination and 8×3 invalid-coordinate/stored-state combinations.
-
-**36 − 25 = 11 feasible test requirements.**
-
-The table below covers all eleven. The count comes from the model and constraints; it is not an arbitrary target number.
-
-#### 5.5 Concrete values, goals, and current expected outcomes
-
-| ID | Blocks (C1, C2) | row | col | State | Goal | Current expected |
-|---|---|---:|---:|---|---|---|
-| GV01 | B1, B1 | -1 | -1 | NO_CELL | Check empty-string fallback | `""` |
-| GV02 | B1, B2 | -1 | 4 | NO_CELL | Check empty-string fallback | `""` |
-| GV03 | B1, B3 | -1 | 9 | NO_CELL | Check empty-string fallback | `""` |
-| GV04 | B2, B1 | 4 | -1 | NO_CELL | Check empty-string fallback | `""` |
-| GV05 | B2, B2 | 4 | 4 | EMPTY | Read an empty mutable cell | `""` |
-| GV06 | B2, B2 | 4 | 4 | PLAYER | Read a filled mutable cell | `"5"` |
-| GV07 | B2, B2 | 4 | 4 | GIVEN | Read a filled immutable cell | `"7"` |
-| GV08 | B2, B3 | 4 | 9 | NO_CELL | Record boundary-access exception | `ArrayIndexOutOfBoundsException` |
-| GV09 | B3, B1 | 9 | -1 | NO_CELL | Check empty-string fallback | `""` |
-| GV10 | B3, B2 | 9 | 4 | NO_CELL | Record boundary-access exception | `ArrayIndexOutOfBoundsException` |
-| GV11 | B3, B3 | 9 | 9 | NO_CELL | Record boundary-access exception | `ArrayIndexOutOfBoundsException` |
-
-#### 5.6 Test method mapping
-
-| ID | JUnit test method |
-|---|---|
-| GV01 | `testGV01_NegativeRowNegativeColumn` |
-| GV02 | `testGV02_NegativeRowValidColumn` |
-| GV03 | `testGV03_NegativeRowAboveRangeColumn` |
-| GV04 | `testGV04_ValidRowNegativeColumn` |
-| GV05 | `testGV05_ValidPositionEmptyCell` |
-| GV06 | `testGV06_ValidPositionPlayerFilledCell` |
-| GV07 | `testGV07_ValidPositionGivenCell` |
-| GV08 | `testGV08_CurrentBehaviorThrowsForColumnEqualToSize` |
-| GV09 | `testGV09_AboveRangeRowNegativeColumn` |
-| GV10 | `testGV10_CurrentBehaviorThrowsForRowEqualToSize` |
-| GV11 | `testGV11_CurrentBehaviorThrowsForBothEqualToSize` |
-
-GV08, GV10, and GV11 use:
-
-```java
-@Test(expected = ArrayIndexOutOfBoundsException.class)
-```
-
-JUnit marks these cases as passing when the call throws that exception type (or a subclass). Returning normally or throwing an unrelated exception fails the test. Each of these test bodies contains only the target call, making the expected exception's source clear.
-
-### 6. Execution results and evidence
-
-#### 6.1 Original correctness-oriented test version — observed log
-
-The supplied Gradle execution log states:
-
-```text
-23 tests completed, 6 failed
-BUILD FAILED
-```
-
-The six reported failing methods all belonged to SudokuACoCTest.
-
-| Group | Executed | Passed | Failed |
-|---|---:|---:|---:|
-| New inRange() tests | 9 | 6 | 3 |
-| New getValue() tests | 11 | 8 | 3 |
-| Existing project tests | 3 | 3 | 0 |
-| Total | 23 | 17 | 6 |
-
-The new tests therefore had 14 passes and six failures. Three failures were assertion mismatches; three were unexpected ArrayIndexOutOfBoundsExceptions. Compilation and test discovery succeeded: the Gradle test task failed because tests failed.
-
-#### 6.2 Current characterization version — confirmation status
-
-The contributor reported that the revised version worked successfully. A detailed post-revision Gradle summary or HTML report was not supplied when this README was prepared.
-
-The following numbers are **expected from the current code, not independently verified execution counts**:
-
-| Run scope | Expected executed | Expected passed | Expected failed |
-|---|---:|---:|---:|
-| SudokuACoCTest only | 20 | 20 | 0 |
-| Entire project, if it still contains only these 20 and the original 3 tests | 23 | 23 | 0 |
-
-Before submission, attach or link the latest generated report and record the actual executed/passed/failed counts, run date, revision, and environment. If teammates have added tests, the full-project count will differ.
-
-#### 6.3 What changed between versions
-
-| Cases | Original expected | Current characterization expected |
+| Block | Description | Fixture |
 |---|---|---|
-| IR06, IR08, IR09 | false | true |
-| GV08, GV10, GV11 | empty String | ArrayIndexOutOfBoundsException |
+| EMPTY | Empty mutable cell | Value `""`, mutable `true` |
+| PLAYER | Filled mutable cell | Value `"5"`, mutable `true` |
+| GIVEN | Filled immutable cell | Value `"7"`, mutable `false` |
+| NO_CELL | Coordinate does not identify a cell | No array access during setup |
 
-The production code, tested coordinates, and total number of new test methods remain unchanged. The six changes alter the test oracle, meaning the rule used to judge an outcome. They do not repair the program.
+PLAYER and GIVEN label fixture scenarios. This model covers non-null cell contents and excludes empty immutable cells.
 
-### 7. Defect report — D01: inclusive upper bounds
+**Constraints:** When C1 and C2 are both B2, C3 is EMPTY, PLAYER, or GIVEN. For all other coordinate pairs, C3 must be NO_CELL.
 
-**Location:** SudokuPuzzle.inRange(int row, int col)  
-**Type:** Off-by-one boundary defect  
-**Status:** Observed and documented; production code intentionally unchanged.
+#### 5. Combination Strategy (All Combinations Coverage)
 
-The original condition is:
+ACoC covers all feasible combinations within this model.
 
-```java
-return row <= this.ROWS && col <= this.COLUMNS
-        && row >= 0 && col >= 0;
-```
+- Before constraints: `3 × 3 × 4 = 36` combinations.
+- Both coordinates valid: `1 × 3 = 3` feasible combinations.
+- At least one coordinate invalid: `8 × 1 = 8` feasible combinations.
+- Required tests: **3 + 8 = 11**, equivalently **36 − 25 = 11**.
 
-For a dimension of 9, array indices run from 0 to 8. The condition accepts 9 because 9 <= 9 is true.
+#### 6. ACoC Test Requirements
 
-| Reproduction | Correct expected behavior | Observed original behavior |
-|---|---|---|
-| inRange(4,9) | false | true |
-| inRange(9,4) | false | true |
-| inRange(9,9) | false | true |
-| getValue(4,9) | empty String | ArrayIndexOutOfBoundsException |
-| getValue(9,4) | empty String | ArrayIndexOutOfBoundsException |
-| getValue(9,9) | empty String | ArrayIndexOutOfBoundsException |
+| Test | Row block (C1) | Column block (C2) | Cell state (C3) | Expected Result |
+|---|---|---|---|---|
+| GV01 | B1 | B1 | NO_CELL | `""` |
+| GV02 | B1 | B2 | NO_CELL | `""` |
+| GV03 | B1 | B3 | NO_CELL | `""` |
+| GV04 | B2 | B1 | NO_CELL | `""` |
+| GV05 | B2 | B2 | EMPTY | `""` |
+| GV06 | B2 | B2 | PLAYER | `"5"` |
+| GV07 | B2 | B2 | GIVEN | `"7"` |
+| GV08 | B2 | B3 | NO_CELL | `ArrayIndexOutOfBoundsException` |
+| GV09 | B3 | B1 | NO_CELL | `""` |
+| GV10 | B3 | B2 | NO_CELL | `ArrayIndexOutOfBoundsException` |
+| GV11 | B3 | B3 | NO_CELL | `ArrayIndexOutOfBoundsException` |
 
-getValue() relies on inRange(). When the faulty guard accepts a nonexistent cell, getValue() accesses board[row][col] and throws. The six failing correctness tests reveal multiple manifestations of the same root defect; they should not be reported as six independent bugs.
+#### 7. Test Values
 
-The characterization tests retain these inputs and explicitly record the observed outcomes. If the defect is fixed later, these six characterization expectations must be reviewed.
+Each test starts with a fresh board. Existing-cell fixtures set `board` and `mutable` directly in package `sudoku`, without calling `makeMove()`. NO_CELL cases do not access invalid indices during setup.
 
+| Test | `row` | `col` | Cell State | Expected Result |
+|---|---:|---:|---|---|
+| GV01 | -1 | -1 | NO_CELL | `""` |
+| GV02 | -1 | 4 | NO_CELL | `""` |
+| GV03 | -1 | 9 | NO_CELL | `""` |
+| GV04 | 4 | -1 | NO_CELL | `""` |
+| GV05 | 4 | 4 | EMPTY | `""` |
+| GV06 | 4 | 4 | PLAYER | `"5"` |
+| GV07 | 4 | 4 | GIVEN | `"7"` |
+| GV08 | 4 | 9 | NO_CELL | `ArrayIndexOutOfBoundsException` |
+| GV09 | 9 | -1 | NO_CELL | `""` |
+| GV10 | 9 | 4 | NO_CELL | `ArrayIndexOutOfBoundsException` |
+| GV11 | 9 | 9 | NO_CELL | `ArrayIndexOutOfBoundsException` |
+
+GV08, GV10, and GV11 expect `ArrayIndexOutOfBoundsException` in the characterization version. This records the boundary defect; it does not fix it.
 <img width="729" height="943" alt="image" src="https://github.com/user-attachments/assets/4f3a24c8-6bfe-4434-8bc1-884dafe6459e" />
 
 ## 5. ECC — Tinakome Rasripenngam
