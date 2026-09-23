@@ -127,10 +127,10 @@ ACoC covers every feasible combination of the modeled blocks.
 | IR03 | B1 | B3 | NO_CELL | `false` |
 | IR04 | B2 | B1 | NO_CELL | `false` |
 | IR05 | B2 | B2 | EXISTS | `true` |
-| IR06 | B2 | B3 | NO_CELL | `true` |
+| IR06 | B2 | B3 | NO_CELL | `false` |
 | IR07 | B3 | B1 | NO_CELL | `false` |
-| IR08 | B3 | B2 | NO_CELL | `true` |
-| IR09 | B3 | B3 | NO_CELL | `true` |
+| IR08 | B3 | B2 | NO_CELL | `false` |
+| IR09 | B3 | B3 | NO_CELL | `false` |
 
 #### 7. Test Values
 
@@ -141,12 +141,12 @@ ACoC covers every feasible combination of the modeled blocks.
 | IR03 | -1 | 9 | `false` |
 | IR04 | 4 | -1 | `false` |
 | IR05 | 4 | 4 | `true` |
-| IR06 | 4 | 9 | `true` |
+| IR06 | 4 | 9 | `false` |
 | IR07 | 9 | -1 | `false` |
-| IR08 | 9 | 4 | `true` |
-| IR09 | 9 | 9 | `true` |
+| IR08 | 9 | 4 | `false` |
+| IR09 | 9 | 9 | `false` |
 
-IR06, IR08, and IR09 expect `true` to record the known defect. The correct array-bounds result would be `false`.
+IR06, IR08, and IR09 show `true` to which is known defect. The correct array-bounds result would be `false`.
 
 ### ACoC-2: getValue()
 
