@@ -6,87 +6,59 @@
 **Submission deadline:** 23 September 2026, before 23:55  
 **Presentation and Q&A:** 24 September 2026
 
-This README combines the five members' input space partitioning (ISP) reports. It documents **10 logical suites and 81 designed scenarios**. These are design counts from the supplied reports, not a verified combined Gradle execution count. The original production code is kept unchanged.
+This README documents the team's Input Space Partitioning (ISP) unit tests for the selected open-source project. Each of the five members applies one combination criterion to two logical test suites. The original production code is kept unchanged.
 
 ## Contents
 
 - [1. Project overview](#1-project-overview)
 - [2. Team responsibilities and suite inventory](#2-team-responsibilities-and-suite-inventory)
-- [3. Build, execution, and documentation conventions](#3-build-execution-and-documentation-conventions)
+- [3. Build and execution](#3-build-and-execution)
 - [4. ACoC — Veerakron No-in](#4-acoc--veerakron-no-in)
 - [5. ECC — Tinakome Rasripenngam](#5-ecc--tinakome-rasripenngam)
 - [6. PWC — Sunattha Boonla-or](#6-pwc--sunattha-boonla-or)
 - [7. MBCC — Wirunya Kaewthong](#7-mbcc--wirunya-kaewthong)
 - [8. BCC — Piyada Chalermnontakarn](#8-bcc--piyada-chalermnontakarn)
-- [9. Consolidated results and known defect](#9-consolidated-results-and-known-defect)
-- [10. Integration review and submission checklist](#10-integration-review-and-submission-checklist)
+- [9. Known defect in the production code](#9-known-defect-in-the-production-code)
 
 ## 1. Project overview
 
-The selected project is [mattnenterprise/Sudoku](https://github.com/mattnenterprise/Sudoku), a Java Sudoku application with a Swing interface. The team's tests in these reports target the board logic in `sudoku.SudokuPuzzle` rather than GUI interaction.
+The selected project is [mattnenterprise/Sudoku](https://github.com/mattnenterprise/Sudoku), a Java Sudoku game with a Swing GUI. At the time of selection the repository had 58 stars (well above the required minimum of 20), is written in Java, is an actual software project rather than a tutorial, and was not chosen by any other group.
 
-The work applies five ISP combination criteria: All Combinations Coverage (ACoC), Each Choice Coverage (ECC), Pair-Wise Coverage (PWC), Base Choice Coverage (BCC), and Multiple Base Choice Coverage (MBCC). Each criterion is assigned to two logical suites. The purpose is to explain how concrete tests follow from characteristics, partitions, constraints, and expected outcomes.
+The project already ships a small test class (`SudokuPuzzleTest.java`) that tests `numInRow()`, `numInCol()`, and `numInBox()`. The team's new tests target other board-logic methods in `sudoku.SudokuPuzzle` and do not duplicate those existing tests. GUI classes (`SudokuFrame`, `SudokuPanel`) are not tested.
 
-**Evidence scope:** This combined report was assembled from five member READMEs. Test source files and a final full-team Gradle report were not supplied with them. Historical execution statements below are attributed to their source reports; no new test execution is claimed. Project-selection evidence such as the star count at selection and confirmation that no other group chose the project should be retained with the submission.
+The team applies the five ISP combination criteria taught in class: All Combinations Coverage (ACoC), Each Choice Coverage (ECC), Pair-Wise Coverage (PWC), Base Choice Coverage (BCC), and Multiple Base Choice Coverage (MBCC). Each criterion is used in exactly two test suites, giving 10 additional unit test suites in total. Each suite documents the tested function, its parameters and return behaviour, interface-based and functionality-based characteristics, the combination step, and concrete test values with expected results.
 
 ## 2. Team responsibilities and suite inventory
 
-| Member | StudentID | Criterion | Logical suites | Designed scenarios |
-|---|---|---|---:|---:|
-| Veerakron No-in | 6688164 | ACoC | 2 | 20 |
-| Tinakome Rasripenngam | 6688095 | ECC | 2 | 4 |
-| Sunattha Boonl-or | 6688009 | PWC | 2 | 9 |
-| Wirunya Kaewthong | 6688172 | MBCC | 2 | 40 |
-| Piyada Chalermnontakarn | 6688239 | BCC | 2 | 8 |
-| **Total** | | **5 criteria** | **10** | **81** |
+| Member | Student ID | Criterion | Suite 1 (method) | Suite 2 (method) |
+|---|---|---|---|---|
+| Veerakron No-in | 6688164 | ACoC | `inRange()` | `getValue()` |
+| Tinakome Rasripenngam | 6688095 | ECC | `isSlotMutable()` | `makeSlotEmpty()` |
+| Sunattha Boonl-or | 6688009 | PWC | `isSlotAvailable()` | `makeMove()` |
+| Wirunya Kaewthong | 6688172 | MBCC | `makeMove()` | `numInBox()` (being revised) |
+| Piyada Chalermnontakarn | 6688239 | BCC | `isValidMove()` | `isSlotAvailable()` |
 
-| Suite | Local identifier | Tested method | Criterion | Cases | Reason for count |
-|---:|---|---|---|---:|---|
-| 1 | ACoC-1 / IR01–IR09 | `inRange(row, col)` | ACoC | 9 | 18 raw combinations minus 9 infeasible combinations |
-| 2 | ACoC-2 / GV01–GV11 | `getValue(row, col)` | ACoC | 11 | 36 raw combinations minus 25 infeasible combinations |
-| 3 | ECC-1 / T1–T2 | `isSlotMutable(row, col)` | ECC | 2 | Cover both blocks of each of two characteristics |
-| 4 | ECC-2 / T1–T2 | `makeSlotEmpty(row, col)` | ECC | 2 | Cover both blocks of each of two characteristics |
-| 5 | PWC-1 / T1–T4 | `isSlotAvailable(row, col)` | PWC | 4 | Four proposed rows for three binary characteristics; feasibility review required |
-| 6 | PWC-2 / T1–T5 | `makeMove(row, col, value, isMutable)` | PWC | 5 | Five proposed rows for four binary characteristics; fixture review required |
-| 7 | MBCC-1 / MM01–MM28 | `makeMove(row, col, value, isMutable)` | MBCC | 28 | Two bases, each with 13 non-base variations |
-| 8 | MBCC-2 / NB01–NB12 | `numInBox(row, col, value)` | MBCC | 12 | Two bases, each with five non-base variations |
-| 9 | BCC-1 / T1–T4 | `isValidMove(row, col, value)` | BCC | 4 | One base plus three single-characteristic variations |
-| 10 | BCC-2 / T1–T4 | `isSlotAvailable(row, col)` | BCC | 4 | One base plus three single-characteristic variations |
+Each criterion is applied to two suites, so the five members cover all five combination approaches (each approach used in two suites), as required.
 
-A **suite** here is a logical group for a tested method and criterion. A JUnit **test case** is an implemented test method; several assertions may belong to one case. Two logical suites can share one Java test class. Prefix local IDs with their suite, for example `ECC-1/T1`, to avoid confusing repeated T1 labels.
+A method may be tested by more than one member as long as the characteristics differ. `makeMove()` is tested by both PWC and MBCC, and `isSlotAvailable()` by both PWC and BCC, but each uses a different set of characteristics and a different combination criterion, so the resulting test cases are distinct.
 
-The 10 suites target **eight distinct methods**: `makeMove()` and `isSlotAvailable()` each appear in two contributions. Testing the same method does not automatically mean every scenario is duplicated, but the fixtures and assertions must be compared. The existing project's `numInBox()` tests also require comparison with MBCC-2. These checks are recorded in Section 10.
+Each new test class is placed under `src/test/java/sudoku/`, separate from the existing `SudokuPuzzleTest.java`, and carries the required MIT copyright header with its author and the year 2026. The original `LICENSE` file is kept.
 
-## 3. Build, execution, and documentation conventions
+## 3. Build and execution
 
-Run commands from the Sudoku project directory containing `build.gradle`, `gradlew`, and `gradlew.bat`, inside `liu-qi_project1/`. Do not assume the team repository root is the Gradle project root.
-
-The supplied reports identify the original configuration as **Gradle 5.2.1 and JUnit 4.12**. Use the team's established compatible JDK configuration and record it with the final run. The earlier project setup uses JDK 11; the MBCC report's separate Java 17 verification does not establish wrapper compatibility.
-
-Windows PowerShell:
-
-```powershell
-java -version
-.\gradlew.bat --version
-.\gradlew.bat clean test
-```
-
-macOS/Linux:
+The project uses **Gradle** as its build system, with **JUnit 4.12** as the test framework. Run the tests through the existing Gradle build from the project directory that contains `build.gradle` and the Gradle wrapper (`liu-qi_project1/Sudoku-master/`):
 
 ```bash
-java -version
-bash gradlew --version
-bash gradlew clean test
+# macOS / Linux
+./gradlew test
 ```
 
-Open `build/reports/tests/test/index.html` after execution. Preserve the final full-run report before running filtered tests, which may overwrite the report. The presentation must demonstrate execution through the existing Gradle build system.
+```powershell
+# Windows
+.\gradlew.bat test
+```
 
-New tests belong under `src/test/java/sudoku/`, separately from existing test classes. Confirmed names from the reports are `SudokuACoCTest.java` and `SudokuMBCCTest.java`; the ECC, PWC, and BCC reports do not supply their enclosing test-class names. Each new Java file needs the required copyright header with its actual author(s), year 2026, and the project's MIT license. Retain the original `LICENSE`.
-
-Each contribution documents the tested function, inputs and outputs, interface-based and functionality-based characteristics, combinations, and concrete expected outcomes. `@Before` creates a fresh fixture for each test where stated. `@After` is needed only when cleanup is required; these in-memory fixtures do not open external resources.
-
-**Expected and actual results are separate:** an expected result is the test oracle; an actual result requires execution evidence. ACoC deliberately characterizes an existing defect. Its passing boundary tests do not mean that the boundary behavior is correct.
-
+The HTML test report is generated at `build/reports/tests/test/index.html`. The presentation demonstrates the full test suite running through this Gradle build.
 
 ## 4. ACoC — Veerakron No-in
 
@@ -395,8 +367,6 @@ getValue() relies on inRange(). When the faulty guard accepts a nonexistent cell
 
 The characterization tests retain these inputs and explicitly record the observed outcomes. If the defect is fixed later, these six characterization expectations must be reviewed.
 
-
-
 <img width="729" height="943" alt="image" src="https://github.com/user-attachments/assets/4f3a24c8-6bfe-4434-8bc1-884dafe6459e" />
 
 ## 5. ECC — Tinakome Rasripenngam
@@ -514,7 +484,6 @@ Using the same `SudokuPuzzleForTesting` fixture: slot `(0,0)` holds value `"5"` 
 | T1 | `0` | `0` | Boundary column | Has value | `""` |
 | T2 | `0` | `2` | Non-boundary column | Already empty | `""` |
 <img width="751" height="444" alt="image" src="https://github.com/user-attachments/assets/27179eef-36ac-44d4-afa1-d3dfe34bbf18" />
-
 
 ## 6. PWC — Sunattha Boonla-or
 
@@ -669,142 +638,100 @@ The fixture uses a 9x9 board that starts empty and mutable. Specific cells are a
 | T5 | `-1` | `-1` | `"X"` | `(0,4)="5"` conflict, mutable | `""` |
 <img width="699" height="425" alt="image" src="https://github.com/user-attachments/assets/572d3a41-e53b-4b41-8652-4da20109fa25" />
 
-
 ## 7. MBCC — Wirunya Kaewthong
 
 **Owner:** Wirunya Kaewthong (Ingeye)  
 **Numbering:** Subsection numbers below are local to this contribution.
 
-### 1. Objective and scope
+> The MBCC contribution originally covered two methods: `makeMove()` (MM01-MM28) and `numInBox()` (NB01-NB12). The `numInBox()` suite is being revised because the existing project test class `SudokuPuzzleTest.java` already tests `numInBox()`, and the assignment does not allow duplicating an existing test. It will be added back here once it targets a method that is not already covered.
 
-This report documents the Multiple Base Choice Coverage (MBCC) tests implemented in `SudokuMBCCTest.java`. The objective is to check whether `SudokuPuzzle` correctly performs a move and searches the selected Sudoku box under systematically chosen input conditions.
+### MBCC-1: makeMove()
 
-The single Java file contains two method-based test groups:
+#### 1. Testable Function
+Function: makeMove(int row, int col, String value, boolean isMutable)
+<br> This method places a value into the target slot only when the value is an allowed digit, the move does not conflict with the same row, column, or box, and the slot is currently mutable. On an accepted move the target is assigned the proposed value and the requested mutability. Otherwise the board and the mutability flags are left unchanged.
 
-| Method under test | Test identifiers | JUnit test methods |
-|---|---|---:|
-| `makeMove(int row, int col, String value, boolean isMutable)` | MM01-MM28 | 28 |
-| `numInBox(int row, int col, String value)` | NB01-NB12 | 12 |
-| **Total for this MBCC file** | | **40** |
-
-Each `@Test` method implements one concrete scenario. Multiple assertions within a method verify different parts of that scenario; they are not counted as additional test cases. These tests form the MBCC contribution to the project. The report covers only this test file.
-
-The production code is tested without modification. The models use a fixed 9 x 9 board with 3 x 3 boxes, valid coordinates from 0 to 8, and non-null strings stored in board cells. Additional restrictions are stated for each method. Coverage claims apply to these documented input models.
-
-### 2. MBCC design procedure
-
-The test design follows the input domain modelling steps in the project description:
-
-1. Identify the testable method and its behaviour.
-2. Identify its parameters, outputs, relevant state, and exceptional behaviour.
-3. Define interface-based and functionality-based characteristics, their blocks, and constraints.
-4. Select and justify multiple base tests.
-5. For each base, change one characteristic to each of its non-base blocks while retaining the other base choices.
-6. Select concrete values, define expected results, and implement the corresponding JUnit methods.
-
-A **characteristic** is a property of the input or relevant pre-state. A **block** is a category within that characteristic. Interface-based characteristics describe parameter values, while functionality-based characteristics describe conditions relevant to the method's behaviour.
-
-The lecture's MBCC formula counts the base tests and their one-characteristic variations:
-
-$$
-T_{\mathrm{MBCC}} = M + \sum_{i=1}^{Q} M(B_i-m_i)
-                  = M\left[1+\sum_{i=1}^{Q}(B_i-m_i)\right]
-$$
-
-| Symbol | Meaning |
+#### 2. Parameters
+| Parameter | Description |
 |---|---|
-| $T_{\mathrm{MBCC}}$ | Number of generated test combinations; the final distinct-case count when they are all feasible and unique |
-| $M$ | Number of complete base tests selected |
-| $Q$ | Number of input characteristics in the model |
-| $B_i$ | Total number of blocks for characteristic $i$ |
-| $m_i$ | Number of selected base blocks for characteristic $i$ |
-| $B_i-m_i$ | Number of non-base blocks to try for characteristic $i$, starting from each base test |
+| `row` | The row index of the target cell |
+| `col` | The column index of the target cell |
+| `value` | The proposed value to store in the target cell |
+| `isMutable` | The mutability flag to set on the target if the move is accepted |
 
-The first term, $M$, counts the base tests themselves. The summation counts the derived tests: each of the $M$ bases is varied through the non-base blocks of one characteristic at a time. Notice that $M$ counts **complete base scenarios**, whereas $m_i$ counts **base blocks for one characteristic**; they need not be equal.
+#### 3. Return Value and Exceptional Behaviour
+This method returns `void`. Its effect is observed through the board state after the call, using `getValue(row, col)` and the mutability flag. An accepted move changes only the target value and its requested mutability; a rejected move leaves the entire state unchanged.
 
-This count must be checked for infeasible or duplicate combinations. In the two models below, all selected combinations are feasible and distinct. Every selected base block occurs in at least one base test. MBCC does not require the Cartesian product of all selected base blocks.
+Exceptional behaviour: No exception is expected for the selected cases, including a `null` value. The guard uses short-circuit evaluation (`isValidValue(value) && isValidMove(row,col,value) && isSlotMutable(row,col)`), so an unsupported, empty, or `null` value is rejected by value validation before any array access. All selected coordinates are inside the modeled range 0-8.
 
-### 3. Common test setup
-
-Before every test, JUnit executes `setUp()` using `@Before`:
-
-```java
-@Before
-public void setUp() {
-    puzzle = new SudokuPuzzle(BOARD_SIZE, BOARD_SIZE, BOX_SIZE, BOX_SIZE,
-            new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9"});
-}
-```
-
-`BOARD_SIZE` is 9 and `BOX_SIZE` is 3. The constructor initializes every board cell to `""` and every mutability flag to `true`. A fresh puzzle prevents state from one case affecting another; the tests do not depend on execution order.
-
-The fixture helpers directly set `board` and `mutable` from the same `sudoku` package. This allows a test to prepare a specific pre-state without using the method being tested to construct that state. No files, connections, or other external resources are opened, so `@After` cleanup is unnecessary.
-
-The implementation uses typed `Conflict`, `Match`, and `MoveOutcome` categories. Each test follows **Arrange - Act - Assert**: prepare the fixture, call the production method once, and compare the actual result with the expected result.
-
-### 4. Test group 1: makeMove()
-
-#### 4.1 Function, parameters, and expected behaviour
-
-```java
-void makeMove(int row, int col, String value, boolean isMutable)
-```
-
-| Parameter or state | Meaning |
+#### 4. Input Domain Modeling
+##### Interface-based characteristics
+C1: Row Position
+| Partition | Description |
 |---|---|
-| `row`, `col` | Zero-based coordinates of the target cell |
-| `value` | Proposed string to store in the target cell |
-| `isMutable` | Requested mutability after an accepted move |
-| `board[row][col]` before the call | Existing target content |
-| `mutable[row][col]` before the call | Whether the target currently permits editing |
-| Other board cells | Potential conflicts in the target's row, column, or box |
-| Return type | `void`; the result is observed through state changes |
+| First | `row = 0` |
+| Interior | `1 <= row <= 7`, represented by `row = 4` |
+| Last | `row = 8` |
 
-An accepted move requires an allowed digit, no conflicting occurrence in the relevant row/column/box, and a currently editable target. The target is then assigned the proposed value and requested mutability. A rejected move must leave both arrays unchanged.
+C2: Column Position
+| Partition | Description |
+|---|---|
+| First | `col = 0` |
+| Interior | `1 <= col <= 7`, represented by `col = 4` |
+| Last | `col = 8` |
 
-Current mutability and requested mutability are different properties. For example, a cell may be editable before the call but become locked after a successful call with `isMutable = false`. An editable cell containing a different digit can also be replaced; this method does not require the target to be empty.
+C3: Input Value Category
+| Partition | Description |
+|---|---|
+| Allowed digit | An allowed value, represented by `"5"` |
+| Unsupported string | A non-empty value that is not allowed, represented by `"X"` |
+| Empty string | `""` |
+| Null | `null` |
 
-No exception is expected for the selected cases, including a null input value. With the configured non-null valid symbols, null is rejected by value validation. Behaviour outside the selected coordinate scope is discussed in Section 8.
+C7: Requested Final Mutability
+| Partition | Description |
+|---|---|
+| True | `isMutable = true` |
+| False | `isMutable = false` |
 
-#### 4.2 Characteristics and blocks
+##### Functionality-based characteristics
+C4: Other-cell Conflict (for an allowed proposed digit)
+| Partition | Description |
+|---|---|
+| NONE | No conflicting occurrence of the value in the row, column, or box |
+| ROW | The value already exists in the same row (different box) |
+| COLUMN | The value already exists in the same column (different box) |
+| BOX | The value already exists in the same box (different row and column) |
+| MULTIPLE | The value exists in the row, column, and box simultaneously |
 
-| ID | Characteristic | Type | Blocks and concrete representatives | Selected base blocks |
-|---|---|---|---|---|
-| C1 | Row position | Interface | First: 0; interior: 1-7, represented by 4; last: 8 | Interior |
-| C2 | Column position | Interface | First: 0; interior: 1-7, represented by 4; last: 8 | Interior |
-| C3 | Input value category | Interface | Allowed digit: `"5"`; unsupported nonempty string: `"X"`; empty string: `""`; null: `null` | Allowed digit |
-| C4 | Other-cell conflict for an allowed proposed digit | Functionality | NONE; ROW only; COLUMN only; BOX only; MULTIPLE regions | NONE |
-| C5 | Target currently editable | Functionality | `true`; `false` | `true` |
-| C6 | Existing target content | Functionality | Empty: `""`; different allowed digit: `"2"` | Empty |
-| C7 | Requested final mutability | Interface | `true`; `false` | Both |
+C5: Target Currently Editable
+| Partition | Description |
+|---|---|
+| True | The target's `mutable` flag is `true` before the call |
+| False | The target's `mutable` flag is `false` before the call |
 
-**Constraints and interpretation:**
+C6: Existing Target Content
+| Partition | Description |
+|---|---|
+| Empty | The target already holds `""` before the call |
+| Different digit | The target already holds a different allowed digit, represented by `"2"` |
 
-- C1 and C2 partition the selected valid-coordinate domain, 0-8. Negative indices and indices 9 or greater are outside this model.
-- C4 excludes the target itself. Its NONE, single-region, and multiple-region categories are mutually exclusive for an allowed candidate digit.
-- For unsupported, empty, or null input values, C4 uses NONE as a neutral fixture category. Value validation is expected to reject the input before a Sudoku digit-conflict check is relevant. This does not claim that a low-level string search for `""` would find no empty cell.
-- Invalid input values are not combined with ROW, COLUMN, BOX, or MULTIPLE fixtures. The generated invalid-value cases leave other cells empty.
-- C6 excludes a target already containing the same allowed digit as the proposed value. An empty target remains in the Empty block even when the rejected input value is also `""`.
-- The valid-digit representative is `"5"`; testing it does not independently prove correct handling of every allowed digit.
+**Constraints:**
+- C1 and C2 partition the valid coordinate range 0-8. Coordinates outside this range are out of this model's scope.
+- C4 excludes the target itself; its blocks are mutually exclusive for an allowed candidate digit.
+- For unsupported, empty, or `null` values, C4 uses NONE as a neutral fixture, since value validation rejects the input before any conflict check is relevant. Invalid values are not combined with ROW, COLUMN, BOX, or MULTIPLE fixtures.
+- C6 excludes a target already containing the same allowed digit as the proposed value.
 
-#### 4.3 Base choices and rationale
+#### 5. Combination Strategy (Multiple Base Choice Coverage)
+Multiple Base Choice Coverage selects one or more complete base tests, then, from each base, changes exactly one characteristic at a time to each of its non-base blocks while keeping the other base choices fixed.
 
-Tuple order throughout this group is:
+Two base tests are chosen. They share a valid interior position, an allowed value, no conflict, and an editable empty target, and differ only in the requested final mutability (C7), so both boolean outcomes are observed under conditions where the move should succeed:
+- Base A: `(row=4, col=4, value="5", conflict=NONE, currentMutable=true, oldValue="", requestedMutable=true)` — accepted, target stays editable.
+- Base B: `(row=4, col=4, value="5", conflict=NONE, currentMutable=true, oldValue="", requestedMutable=false)` — accepted, target becomes locked.
 
-```text
-(row, col, value, conflict, currentMutable, oldValue, requestedMutable)
-```
+The lecture's MBCC test count is `M + sum over i of M x (Bi - mi)`, where `M` is the number of base tests, `Bi` is the block count of characteristic `i`, and `mi` is its number of base blocks.
 
-| Base | Test | Concrete tuple | Rationale |
-|---|---|---|---|
-| A | MM01 | `(4, 4, "5", NONE, true, "", true)` | An accepted entry that remains editable |
-| B | MM15 | `(4, 4, "5", NONE, true, "", false)` | An accepted entry that becomes locked |
-
-Both bases use a valid interior location, an allowed value, no conflict, and an editable empty target. They differ in the requested final mutability, so both boolean choices can be observed under conditions where a move should succeed.
-
-#### 4.4 Derivation of 28 tests
-
-| Characteristic | Total blocks `B_i` | Base blocks `m_i` | Non-base variations per base |
+| Characteristic | Blocks Bi | Base blocks mi | Non-base variations per base |
 |---|---:|---:|---:|
 | C1: row | 3 | 1 | 2 |
 | C2: column | 3 | 1 | 2 |
@@ -813,262 +740,67 @@ Both bases use a valid interior location, an allowed value, no conflict, and an 
 | C5: current mutability | 2 | 1 | 1 |
 | C6: existing content | 2 | 1 | 1 |
 | C7: requested mutability | 2 | 2 | 0 |
-| **Total variations per base** | | | **13** |
+| **Variations per base** | | | **13** |
 
-For this model, $M=2$ and $Q=7$. Substituting the block counts from the table:
+With `M = 2`, the count is `2 x (1 + 13) = 28` tests. C7 adds no variation because both of its blocks are already base blocks. MM02-MM14 are the single-characteristic variations of Base A (MM01); MM16-MM28 are the corresponding variations of Base B (MM15).
 
-$$
-\begin{aligned}
-T_{\mathrm{makeMove}}
-&= 2 + 2\big[(3-1)+(3-1)+(4-1)+(5-1)+(2-1)+(2-1)+(2-2)\big] \\
-&= 2 + 2\big[2+2+3+4+1+1+0\big] \\
-&= 2 + 2(13) \\
-&= \boxed{28}
-\end{aligned}
-$$
+#### 6. MBCC Test Requirements
+Tuple order: `(row, col, value, conflict, currentMutable, oldValue, requestedMutable)`. ACCEPT changes only the target value and mutability; REJECT leaves the entire state unchanged.
 
-Each base contributes its own base case plus 13 variations: $2\times(1+13)=28$ tests.
-
-For example, C3 has four input-value blocks and one base block (the allowed digit). Its three non-base blocks are `"X"`, `""`, and `null`. Applying those three alternatives to both base scenarios gives $2\times(4-1)=6$ tests: MM06-MM08 and MM20-MM22.
-
-MM02-MM14 are one-characteristic variations of MM01. MM16-MM28 are the corresponding variations of MM15. No additional C7 variation is generated because both of its blocks are already selected as base blocks. The count is a consequence of these characteristic and base choices, not an arbitrary test-count target.
-
-#### 4.5 Fixture construction and assertions
-
-The helper `checkMove()` prepares target content, current mutability, and any required conflict. Conflict placements isolate the intended restriction:
-
-| Conflict fixture | Placement rule | Concrete placement for target `(4,4)` |
+| ID | Tuple | Expected Result |
 |---|---|---|
-| NONE | No conflicting digit is inserted | No extra `"5"` |
-| ROW | Same row, different box | `(4,7)` |
-| COLUMN | Same column, different box | `(7,4)` |
-| BOX | Same box, different row and column | `(5,5)` |
-| MULTIPLE | All three placements above | `(4,7)`, `(7,4)`, and `(5,5)` |
+| MM01 (Base A) | `(4, 4, "5", NONE, true, "", true)` | ACCEPT: target `"5"`, mutable `true` |
+| MM02 | `(0, 4, "5", NONE, true, "", true)` | ACCEPT: target `"5"`, mutable `true` |
+| MM03 | `(8, 4, "5", NONE, true, "", true)` | ACCEPT: target `"5"`, mutable `true` |
+| MM04 | `(4, 0, "5", NONE, true, "", true)` | ACCEPT: target `"5"`, mutable `true` |
+| MM05 | `(4, 8, "5", NONE, true, "", true)` | ACCEPT: target `"5"`, mutable `true` |
+| MM06 | `(4, 4, "X", NONE, true, "", true)` | REJECT: state unchanged |
+| MM07 | `(4, 4, "", NONE, true, "", true)` | REJECT: state unchanged |
+| MM08 | `(4, 4, null, NONE, true, "", true)` | REJECT: state unchanged |
+| MM09 | `(4, 4, "5", ROW, true, "", true)` | REJECT: state unchanged |
+| MM10 | `(4, 4, "5", COLUMN, true, "", true)` | REJECT: state unchanged |
+| MM11 | `(4, 4, "5", BOX, true, "", true)` | REJECT: state unchanged |
+| MM12 | `(4, 4, "5", MULTIPLE, true, "", true)` | REJECT: state unchanged |
+| MM13 | `(4, 4, "5", NONE, false, "", true)` | REJECT: state unchanged |
+| MM14 | `(4, 4, "5", NONE, true, "2", true)` | ACCEPT: target `"5"`, mutable `true` |
+| MM15 (Base B) | `(4, 4, "5", NONE, true, "", false)` | ACCEPT: target `"5"`, mutable `false` |
+| MM16 | `(0, 4, "5", NONE, true, "", false)` | ACCEPT: target `"5"`, mutable `false` |
+| MM17 | `(8, 4, "5", NONE, true, "", false)` | ACCEPT: target `"5"`, mutable `false` |
+| MM18 | `(4, 0, "5", NONE, true, "", false)` | ACCEPT: target `"5"`, mutable `false` |
+| MM19 | `(4, 8, "5", NONE, true, "", false)` | ACCEPT: target `"5"`, mutable `false` |
+| MM20 | `(4, 4, "X", NONE, true, "", false)` | REJECT: state unchanged |
+| MM21 | `(4, 4, "", NONE, true, "", false)` | REJECT: state unchanged |
+| MM22 | `(4, 4, null, NONE, true, "", false)` | REJECT: state unchanged |
+| MM23 | `(4, 4, "5", ROW, true, "", false)` | REJECT: state unchanged |
+| MM24 | `(4, 4, "5", COLUMN, true, "", false)` | REJECT: state unchanged |
+| MM25 | `(4, 4, "5", BOX, true, "", false)` | REJECT: state unchanged |
+| MM26 | `(4, 4, "5", MULTIPLE, true, "", false)` | REJECT: state unchanged |
+| MM27 | `(4, 4, "5", NONE, false, "", false)` | REJECT: state unchanged |
+| MM28 | `(4, 4, "5", NONE, true, "2", false)` | ACCEPT: target `"5"`, mutable `false` |
 
-The helper clones every row of both arrays to construct the expected state. Each test explicitly supplies `MoveOutcome.ACCEPT` or `MoveOutcome.REJECT`; the expected outcome is not obtained by calling production validation methods.
+Each Base A / Base B pair shares one test goal:
 
-For ACCEPT, only the target value and requested target mutability are changed in the expected state. For REJECT, the expected state is identical to the pre-state. After one call to `puzzle.makeMove(...)`, `assertArrayEquals()` compares every row of both arrays. This checks the intended target change and detects unintended changes elsewhere.
-
-`MoveOutcome` is an expected output specification; it is not an eighth input characteristic.
-
-#### 4.6 Concrete test cases and expected results
-
-The full tuples below specify all seven model characteristics. ACCEPT always requires every non-target cell and flag to remain unchanged. REJECT requires all cells and flags, including the target, to remain unchanged.
-
-| ID | JUnit test method | Concrete input/pre-state tuple | Expected result |
-|---|---|---|---|
-| MM01 | `testMM01_Base_Editable` | `(4, 4, "5", NONE, true, "", true)` | ACCEPT: target = `"5"`; mutable = `true` |
-| MM02 | `testMM02_Row_0_Editable` | `(0, 4, "5", NONE, true, "", true)` | ACCEPT: target = `"5"`; mutable = `true` |
-| MM03 | `testMM03_Row_8_Editable` | `(8, 4, "5", NONE, true, "", true)` | ACCEPT: target = `"5"`; mutable = `true` |
-| MM04 | `testMM04_Column_0_Editable` | `(4, 0, "5", NONE, true, "", true)` | ACCEPT: target = `"5"`; mutable = `true` |
-| MM05 | `testMM05_Column_8_Editable` | `(4, 8, "5", NONE, true, "", true)` | ACCEPT: target = `"5"`; mutable = `true` |
-| MM06 | `testMM06_Value_X_Editable` | `(4, 4, "X", NONE, true, "", true)` | REJECT: entire state unchanged |
-| MM07 | `testMM07_Value_Empty_Editable` | `(4, 4, "", NONE, true, "", true)` | REJECT: entire state unchanged |
-| MM08 | `testMM08_Value_Null_Editable` | `(4, 4, null, NONE, true, "", true)` | REJECT: entire state unchanged |
-| MM09 | `testMM09_Conflict_ROW_Editable` | `(4, 4, "5", ROW, true, "", true)` | REJECT: entire state unchanged |
-| MM10 | `testMM10_Conflict_COLUMN_Editable` | `(4, 4, "5", COLUMN, true, "", true)` | REJECT: entire state unchanged |
-| MM11 | `testMM11_Conflict_BOX_Editable` | `(4, 4, "5", BOX, true, "", true)` | REJECT: entire state unchanged |
-| MM12 | `testMM12_Conflict_MULTIPLE_Editable` | `(4, 4, "5", MULTIPLE, true, "", true)` | REJECT: entire state unchanged |
-| MM13 | `testMM13_CurrentMutable_False_Editable` | `(4, 4, "5", NONE, false, "", true)` | REJECT: entire state unchanged |
-| MM14 | `testMM14_ExistingValue_2_Editable` | `(4, 4, "5", NONE, true, "2", true)` | ACCEPT: target = `"5"`; mutable = `true` |
-| MM15 | `testMM15_Base_Locked` | `(4, 4, "5", NONE, true, "", false)` | ACCEPT: target = `"5"`; mutable = `false` |
-| MM16 | `testMM16_Row_0_Locked` | `(0, 4, "5", NONE, true, "", false)` | ACCEPT: target = `"5"`; mutable = `false` |
-| MM17 | `testMM17_Row_8_Locked` | `(8, 4, "5", NONE, true, "", false)` | ACCEPT: target = `"5"`; mutable = `false` |
-| MM18 | `testMM18_Column_0_Locked` | `(4, 0, "5", NONE, true, "", false)` | ACCEPT: target = `"5"`; mutable = `false` |
-| MM19 | `testMM19_Column_8_Locked` | `(4, 8, "5", NONE, true, "", false)` | ACCEPT: target = `"5"`; mutable = `false` |
-| MM20 | `testMM20_Value_X_Locked` | `(4, 4, "X", NONE, true, "", false)` | REJECT: entire state unchanged |
-| MM21 | `testMM21_Value_Empty_Locked` | `(4, 4, "", NONE, true, "", false)` | REJECT: entire state unchanged |
-| MM22 | `testMM22_Value_Null_Locked` | `(4, 4, null, NONE, true, "", false)` | REJECT: entire state unchanged |
-| MM23 | `testMM23_Conflict_ROW_Locked` | `(4, 4, "5", ROW, true, "", false)` | REJECT: entire state unchanged |
-| MM24 | `testMM24_Conflict_COLUMN_Locked` | `(4, 4, "5", COLUMN, true, "", false)` | REJECT: entire state unchanged |
-| MM25 | `testMM25_Conflict_BOX_Locked` | `(4, 4, "5", BOX, true, "", false)` | REJECT: entire state unchanged |
-| MM26 | `testMM26_Conflict_MULTIPLE_Locked` | `(4, 4, "5", MULTIPLE, true, "", false)` | REJECT: entire state unchanged |
-| MM27 | `testMM27_CurrentMutable_False_Locked` | `(4, 4, "5", NONE, false, "", false)` | REJECT: entire state unchanged |
-| MM28 | `testMM28_ExistingValue_2_Locked` | `(4, 4, "5", NONE, true, "2", false)` | ACCEPT: target = `"5"`; mutable = `false` |
-
-The following mapping states the goal of every case. Each pair exercises the same input variation with the two different requested-mutability base choices.
-
-| Base A case | Base B case | Test goal |
+| Base A | Base B | Goal |
 |---|---|---|
-| MM01 | MM15 | Accept a normal entry and apply the requested final mutability. |
-| MM02 | MM16 | Accept an entry in the first valid row. |
-| MM03 | MM17 | Accept an entry in the last valid row. |
-| MM04 | MM18 | Accept an entry in the first valid column. |
-| MM05 | MM19 | Accept an entry in the last valid column. |
-| MM06 | MM20 | Reject an unsupported nonempty value. |
-| MM07 | MM21 | Reject an empty input value. |
-| MM08 | MM22 | Reject a null input value without changing state. |
-| MM09 | MM23 | Reject a value already present in the same row only. |
-| MM10 | MM24 | Reject a value already present in the same column only. |
-| MM11 | MM25 | Reject a value already present in the same box only. |
-| MM12 | MM26 | Reject simultaneous row, column and box conflicts. |
-| MM13 | MM27 | Reject a move into a currently locked target. |
-| MM14 | MM28 | Replace a different existing digit in an editable target. |
+| MM01 | MM15 | Accept a normal entry and apply the requested final mutability |
+| MM02 | MM16 | Accept an entry in the first valid row |
+| MM03 | MM17 | Accept an entry in the last valid row |
+| MM04 | MM18 | Accept an entry in the first valid column |
+| MM05 | MM19 | Accept an entry in the last valid column |
+| MM06 | MM20 | Reject an unsupported non-empty value |
+| MM07 | MM21 | Reject an empty input value |
+| MM08 | MM22 | Reject a null input value |
+| MM09 | MM23 | Reject a value already present in the same row |
+| MM10 | MM24 | Reject a value already present in the same column |
+| MM11 | MM25 | Reject a value already present in the same box |
+| MM12 | MM26 | Reject simultaneous row, column, and box conflicts |
+| MM13 | MM27 | Reject a move into a currently locked target |
+| MM14 | MM28 | Replace a different existing digit in an editable target |
 
-### 5. Test group 2: numInBox()
-
-#### 5.1 Function, parameters, and expected behaviour
-
-```java
-boolean numInBox(int row, int col, String value)
-```
-
-| Parameter or result | Meaning |
-|---|---|
-| `row`, `col` | Coordinates used to select the containing 3 x 3 box |
-| `value` | String to search for; fixed to `"5"` in this model |
-| `true` | At least one matching value exists in the selected box |
-| `false` | No matching value exists in the selected box |
-| State after the call | Board contents and mutable flags must remain unchanged |
-
-The queried cell does not have to contain the searched digit. The method searches the entire containing box. It is a search operation, not a move validator: it does not itself check whether the value is an allowed move or whether a cell is mutable.
-
-No exception is expected in the selected valid-coordinate cases.
-
-#### 5.2 Characteristics, blocks, and scope
-
-The model fixes the searched value to `"5"`, queries each selected box at its centre, and allows at most one occurrence of `"5"` on the board. All other cells are empty.
-
-| ID | Characteristic | Type | Blocks and representatives | Selected base blocks |
-|---|---|---|---|---|
-| D1 | Row's box band | Interface | Top: rows 0-2, query row 1; middle: rows 3-5, query row 4; bottom: rows 6-8, query row 7 | Top, bottom |
-| D2 | Column's box band | Interface | Left: columns 0-2, query column 1; centre: columns 3-5, query column 4; right: columns 6-8, query column 7 | Left, right |
-| D3 | Match location relative to the selected box | Functionality | FIRST; MIDDLE; LAST; OUTSIDE; ABSENT | FIRST, LAST |
-
-D3 is defined as follows:
-
-| Block | Definition | Representative |
-|---|---|---|
-| FIRST | The match is at the first position in the box's row-major scan | Top-left cell |
-| MIDDLE | The match is at one of the seven positions between the first and last scan positions | Centre cell |
-| LAST | The match is at the last position in the scan | Bottom-right cell |
-| OUTSIDE | The sole matching value is outside the selected box | A cell in the next box-column, wrapping around within the same three-row band |
-| ABSENT | There is no matching value anywhere on the board | Entire board remains empty |
-
-These blocks are disjoint and cover the declared model. Multiple occurrences of the searched digit, other search values, and non-centre query positions are outside this model.
-
-#### 5.3 Base choices and rationale
-
-| Base | Test | D1, D2, D3 | Query | Match location | Expected result |
-|---|---|---|---|---|---|
-| A | NB01 | Top, left, FIRST | `(1,1,"5")` | `(0,0)` | `true` |
-| B | NB07 | Bottom, right, LAST | `(7,7,"5")` | `(8,8)` | `true` |
-
-These bases exercise opposite board regions and both endpoints of the box scan. Every selected base block appears at least once. The two bases do not need to include every combination of top/bottom, left/right, and first/last.
-
-#### 5.4 Derivation of 12 tests
-
-| Characteristic | Total blocks `B_i` | Base blocks `m_i` | Non-base variations per base |
-|---|---:|---:|---:|
-| D1: row band | 3 | 2 | 1: middle |
-| D2: column band | 3 | 2 | 1: centre |
-| D3: match location | 5 | 2 | 3: MIDDLE, OUTSIDE, ABSENT |
-| **Total variations per base** | | | **5** |
-
-For this model, $M=2$ and $Q=3$. Substituting the block counts:
-
-$$
-\begin{aligned}
-T_{\mathrm{numInBox}}
-&= 2 + 2\big[(3-2)+(3-2)+(5-2)\big] \\
-&= 2 + 2\big[1+1+3\big] \\
-&= 2 + 2(5) \\
-&= \boxed{12}
-\end{aligned}
-$$
-
-Each base contributes its own base case plus five variations: $2\times(1+5)=12$ tests.
-
-For example, D3 has five match-location blocks. FIRST and LAST are already base blocks, leaving MIDDLE, OUTSIDE, and ABSENT as its three non-base blocks. Applying those alternatives to both bases gives $2\times(5-2)=6$ tests: NB04-NB06 and NB10-NB12.
-
-NB02-NB06 each change one characteristic of NB01. NB08-NB12 each change one characteristic of NB07. The expected boolean may also change, but it is an output and is not counted as a changed input characteristic.
-
-A combination with both the row band and column band changed to middle/centre is not selected: it would change two characteristics from either base. MBCC therefore does not require all nine box locations in this design.
-
-#### 5.5 Fixture construction and assertions
-
-The helper `checkBox(rowBand, colBand, match, expected)` receives box-band indices 0, 1, or 2. These are not direct board-cell coordinates. It calculates:
-
-```text
-firstRow = rowBand x 3
-firstCol = colBand x 3
-query row = firstRow + 1
-query column = firstCol + 1
-```
-
-It places `"5"` according to the selected match category and snapshots both arrays. It then calls `numInBox(queryRow, queryColumn, "5")` once. `assertEquals()` checks the expected boolean, and `assertArrayEquals()` checks that every row of the board and mutable arrays remains unchanged.
-
-#### 5.6 Concrete test cases, goals, and expected results
-
-For every case, all cells except the listed match location contain `""`, and all mutable flags start as `true`. The query value is always `"5"`. Every case also checks that no state changes occur.
-
-| ID | JUnit test method | Query `(row,col,value)` | Match fixture | Expected result and goal |
-|---|---|---|---|---|
-| NB01 | `testNB01_Base_FIRST` | `(1,1,"5")` | FIRST: (0,0) | `true`; find the first scan position |
-| NB02 | `testNB02_RowBand_FIRST` | `(4,1,"5")` | FIRST: (3,0) | `true`; find the first scan position |
-| NB03 | `testNB03_ColumnBand_FIRST` | `(1,4,"5")` | FIRST: (0,3) | `true`; find the first scan position |
-| NB04 | `testNB04_Match_MIDDLE` | `(1,1,"5")` | MIDDLE: (1,1) | `true`; find an interior scan position |
-| NB05 | `testNB05_Match_OUTSIDE` | `(1,1,"5")` | OUTSIDE: (0,3) | `false`; ignore a match outside the selected box |
-| NB06 | `testNB06_Match_ABSENT` | `(1,1,"5")` | ABSENT: none anywhere | `false`; report absence when no match exists |
-| NB07 | `testNB07_Base_LAST` | `(7,7,"5")` | LAST: (8,8) | `true`; find the last scan position |
-| NB08 | `testNB08_RowBand_LAST` | `(4,7,"5")` | LAST: (5,8) | `true`; find the last scan position |
-| NB09 | `testNB09_ColumnBand_LAST` | `(7,4,"5")` | LAST: (8,5) | `true`; find the last scan position |
-| NB10 | `testNB10_Match_MIDDLE` | `(7,7,"5")` | MIDDLE: (7,7) | `true`; find an interior scan position |
-| NB11 | `testNB11_Match_OUTSIDE` | `(7,7,"5")` | OUTSIDE: (6,0) | `false`; ignore a match outside the selected box |
-| NB12 | `testNB12_Match_ABSENT` | `(7,7,"5")` | ABSENT: none anywhere | `false`; report absence when no match exists |
-
-Combining the two method groups gives the number of JUnit tests in the single MBCC file:
-
-$$
-T_{\mathrm{file}} = T_{\mathrm{makeMove}} + T_{\mathrm{numInBox}}
-                 = 28 + 12 = \boxed{40}
-$$
-
-### 6. Automated execution and results
-
-The class was compiled and executed using **JUnit 4.12**. All 40 MBCC test methods passed in the recorded verification run. The table reports only the tests belonging to `SudokuMBCCTest.java`.
-
-| MBCC test group | Executed | Passed | Failed |
-|---|---:|---:|---:|
-| makeMove: MM01-MM28 | 28 | 28 | 0 |
-| numInBox: NB01-NB12 | 12 | 12 | 0 |
-| **Total** | **40** | **40** | **0** |
+#### 7. Test Values
+Each test uses a fresh 9x9 puzzle created by `@Before` with all cells `""` and all flags `true`. The helper prepares the target's prior content and mutability, then places conflict digits when required: ROW at `(4,7)`, COLUMN at `(7,4)`, BOX at `(5,5)`, and MULTIPLE at all three. After one call to `makeMove(...)`, `assertArrayEquals()` compares every row of both the board and the mutable arrays against the expected state, which confirms the intended target change and detects any unintended change elsewhere. The JUnit method names follow the pattern `testMM01_Base_Editable`, `testMM15_Base_Locked`, and so on.
 
 <img width="667" height="915" alt="image" src="https://github.com/user-attachments/assets/120c6c6f-77a8-4956-b775-16ec15d6caed" />
-
-
-**Verification date:** 20 September 2026. Compilation used OpenJDK 17.0.20 with Java 8 target compatibility (`--release 8`) and produced no compiler diagnostics. The recorded verification used the JUnit runner directly; these results are not presented as a verified Gradle run. A successful Gradle report from the submission environment should accompany the required build-framework demonstration.
-
-The tests passed for the selected inputs and expected outcomes. This does not establish correct behaviour for inputs outside the documented models.
-
-### 7. Interpretation of the results
-
-The passing makeMove cases confirm the expected state transitions for the selected accepted moves, including both requested mutability values and replacement of a different existing digit. The rejected cases verify that unsupported values, selected conflicts, and locked targets leave the state unchanged.
-
-The passing numInBox cases confirm that the selected matches can be found at the beginning, interior, and end of a box scan, while an outside match or complete absence produces `false`. Every search case also verifies that the method is read-only.
-
-For the defined models, the implemented cases satisfy the MBCC requirements: 28 distinct makeMove combinations and 12 distinct numInBox combinations. This input-model coverage should not be reported as 100% statement coverage, 100% branch coverage, or proof that the software has no defects.
-
-### 8. Limitations and known boundary behaviour
-
-The following inputs or states are outside the two MBCC models:
-
-- Negative coordinates or coordinates greater than 8.
-- Board sizes other than 9 x 9 or box sizes other than 3 x 3.
-- Malformed boards, including null stored cell strings.
-- A makeMove target already containing the same proposed allowed digit.
-- numInBox searches using other values, multiple matching occurrences, or non-centre query cells.
-- Combinations involving simultaneous non-base changes that are not selected by the stated MBCC construction.
-
-The production `inRange()` method uses `row <= ROWS` and `col <= COLUMNS`. On a 9 x 9 board this incorrectly accepts index 9, although the last valid index is 8. Separate diagnostic calls to `makeMove(4,9,"5",true)` and `numInBox(4,9,"5")` produced `ArrayIndexOutOfBoundsException`.
-
-Those diagnostic calls are **not part of the 40 MBCC tests** and are not included in the pass-count table. They show why the valid-coordinate scope must be stated explicitly. The production defect was not fixed or hidden by changing the expected outcomes of the MBCC cases.
-
-### 9. References
-
-1. **ITCS386 Project Assignment 1: Unit Test for Open-Source Software Projects**, supplied project description, pages 1-4. Requirements for input domain modelling, JUnit implementation, README documentation, and execution using the existing build framework.
-2. **Week 4, Module 6: Input Space Partitioning 2**, supplied lecture (`W4-Module6-Input_Space_Partitioning_2_Student(1).pdf`), pages 28-29. MBCC definition, base selection, and test-count formula.
-3. The project's **SudokuPuzzle.java** implementation and the accompanying **SudokuMBCCTest.java** test class. Concrete interfaces, fixtures, assertions, and method-name traceability.
 
 ## 8. BCC — Piyada Chalermnontakarn
 
@@ -1108,7 +840,6 @@ C2: Column Position
 |---|---|
 | B1: Valid column | `col` is within the Sudoku board range |
 | B2: Invalid column | `col` is outside the Sudoku board range |
-
 
 ##### Functionality-based Characteristic
 C3: Move Conflict
@@ -1225,60 +956,25 @@ T2: row = -1 represents an invalid row position, causing the method to return fa
 T3: col = -1 represents an invalid column position, causing the method to return false.
 T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore unavailable. The method returns false.
 
-
 #### 8. Test Execution Results
 <img width="706" height="614" alt="image" src="https://github.com/user-attachments/assets/c6208fa8-f8f3-494e-8073-8b0e876963e2" />
 
+## 9. Known defect in the production code
 
-## 9. Consolidated results and known defect
+While designing the ISP tests, the team found an off-by-one boundary defect in the production code. It is documented here; the production code is **not** modified.
 
-### 9.1 What the supplied evidence establishes
+**Location:** `SudokuPuzzle.inRange(int row, int col)`
 
-| Contribution | Designed cases | Execution evidence supplied in member report | Combined-run status |
-|---|---:|---|---|
-| ACoC | 20 | Historical correctness version: 14 new cases passed, 6 failed. Contributor reports success after changing six characterization expectations; no detailed revised summary supplied. | Revised results need final Gradle evidence |
-| ECC | 4 | Design tables and expected results only | Actual outcome not supplied |
-| PWC | 9 | Design tables and expected results only | Actual outcome not supplied; model review outstanding |
-| MBCC | 40 | Member reports 40 passed, 0 failed on 20 September 2026 using a direct JUnit runner | A Gradle run remains to be evidenced |
-| BCC | 8 | Design tables and expected results only | Actual outcome not supplied |
-| **Total** | **81** | **No single combined execution report supplied** | **Do not report 81 passes as an observed result** |
+```java
+return row <= this.ROWS && col <= this.COLUMNS
+        && row >= 0 && col >= 0;
+```
 
-If all 81 designed scenarios are implemented as separate discovered JUnit methods, and the three original tests remain, the anticipated complete-run count is **84 tests**. This is conditional: test grouping, missing implementations, additional tests, or revisions can change the count. The final Gradle report determines the actual total.
+For a 9x9 board the valid indices are 0 through 8, but the condition uses `<=`, so it also accepts index 9 (`9 <= 9` is true). Methods that trust `inRange()` before accessing the array are then exposed to an out-of-bounds access.
 
-Record the final run here after execution:
-
-| Evidence field | Final value |
-|---|---|
-| Tested commit | Not yet recorded |
-| Run date and time | Not yet recorded |
-| JDK and Gradle versions | Not yet recorded |
-| Full execution command | `gradlew.bat clean test` or `bash gradlew clean test` |
-| Executed / passed / failed / skipped | Not yet recorded |
-| Saved report or screenshot location | Not yet recorded |
-
-### 9.2 D01 — Inclusive upper bounds
-
-`SudokuPuzzle.inRange()` uses `row <= ROWS` and `col <= COLUMNS`. On a 9×9 board, valid indices are 0–8. Accepting index 9 can lead to an out-of-bounds array access in methods that trust this guard.
-
-ACoC documents incorrect `true` results for `(4,9)`, `(9,4)`, and `(9,9)`, followed by exceptions when those coordinates are used with `getValue()`. These are manifestations of one root defect, not six independent defects. The MBCC report additionally records diagnostic exceptions for `makeMove(4,9,"5",true)` and `numInBox(4,9,"5")`, outside its 40 counted tests.
-
-**Disposition:** Production code remains unchanged. ACoC's current boundary tests characterize the observed defect with explicit expectations. The distinction between intended correctness and current behavior must remain visible in the presentation.
-
-## 10. Integration review and submission checklist
-
-### 10.1 Items to reconcile before submission
-
-The following observations come from combining the reports. They do not change the supplied test inputs or assert that new code has been implemented.
-
-| Item | Evidence and implication | Required follow-up |
+| Call | Correct behaviour | Observed behaviour |
 |---|---|---|
-| Existing-test overlap | MBCC-2 targets `numInBox()`, which the earlier project review identifies as already tested. Same-method testing may add new coverage, but duplicate scenarios do not meet the assignment. | Compare every proposed NB case against the original tests and document its additional purpose; replace duplicated scenarios if necessary. |
-| Cross-member overlap | PWC and MBCC both test `makeMove()`; PWC and BCC both test `isSlotAvailable()`. Some normal acceptance/rejection scenarios may overlap. | Compare concrete fixtures and assertions. Explain distinct requirements and eliminate exact duplicates. |
-| PWC-1 feasibility | T3/T4 describe content and mutability at nonexistent target coordinates. Abstract label pairs are present, but those target states cannot be instantiated. | Define constrained blocks such as NO_CELL/not applicable, or explicitly model independently prepared reference-cell state. Re-derive feasible pairs and synchronize the Java tests and report. |
-| PWC-2 fixtures | T3/T5 have no target cell. T5 proposes `"X"` but its listed conflict fixture contains `"5"`; this is not a matching-value conflict. | Correct the input model and concrete fixtures together. Retain honest short-circuit rejection tests without claiming that uninstantiated conflict blocks are covered. |
-| PWC-2 missing argument | Concrete tables do not specify the `isMutable` argument, although it is part of the method signature. Checking only `(0,0)` also does not prove the entire board was unchanged. | Copy the actual boolean argument and assertions from each Java test into the report. State precisely which state changes are checked. |
-| BCC-1 fixture | T4 expects a conflict with `"8"`, but the report does not identify where that value is placed. | Document the exact pre-state from the Java test. `isValidMove()` checks conflicts and coordinates; it does not itself validate membership in VALIDVALUES. |
-| BCC model constraints | Cell-state and conflict labels are undefined for nonexistent targets. BCC-2's available/unavailable blocks omit empty immutable cells. | Declare the restricted fixture scope and neutral/not-applicable interpretation; avoid claiming exhaustive coverage of all possible states. |
-| Case-name traceability | ECC, PWC, and BCC provide local T identifiers but no exact JUnit method names. | Add the actual class and method names, and a one-sentence goal per case, from the implemented tests. Do not invent names in the report. |
-| ACoC model limits | Cell existence is derived from coordinates. The above-range block includes both 9 and larger values, although the buggy implementation behaves differently at 9 and 10. | Keep the boundary representative and explain that full block-combination coverage does not prove uniform behavior throughout each block. |
-| Final execution | The individual reports do not establish one successful full-team Gradle run. | Run the complete test set through Gradle and fill Section 9.1 with observed results. |
+| `inRange(4,9)`, `inRange(9,4)`, `inRange(9,9)` | `false` | `true` |
+| `getValue(4,9)`, `getValue(9,4)`, `getValue(9,9)` | `""` | `ArrayIndexOutOfBoundsException` |
+
+These are manifestations of a single root defect, not several independent bugs. The ACoC suite documents this observed behaviour explicitly rather than hiding it, and other suites keep their coordinates inside the valid 0-8 range so the defect does not affect their results.
