@@ -1032,8 +1032,8 @@ T_{Total}
 
 \[
 T_{Total}
-= 4 + 4
-= 8 \text{ test cases}
+= 6 + 4
+= 10 \text{ test cases}
 \]
 
 Therefore, the **total BCC test count is 8 test cases**.
