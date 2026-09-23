@@ -252,10 +252,8 @@ GV08, GV10, and GV11 expect `ArrayIndexOutOfBoundsException` in the characteriza
 ### ECC-1: isSlotMutable()
 
 #### 1. Testable Function
-```java
-isSlotMutable(int row, int col)
-```
-<br> This method returns whether the slot at the given position is currently editable, based solely on the internal `mutable` flag for that cell.
+Function: isSlotMutable(int row, int col)
+<br> This method returns whether the slot at the given position is currently editable, based only on the internal `mutable` flag of that cell.
 
 #### 2. Parameters
 | Parameter | Description |
@@ -268,7 +266,7 @@ The method returns a boolean value:
 - `true` if the slot at `(row, col)` is mutable
 - `false` if the slot at `(row, col)` is locked
 
-Exceptional behaviour: Unlike `isSlotAvailable()`, this method does **not** call `inRange()` before accessing the array — it directly evaluates `this.mutable[row][col]`. Passing a `row` or `col` outside the board's bounds will therefore throw an uncaught `ArrayIndexOutOfBoundsException` instead of returning a boolean. This test suite focuses on the method's normal (in-range) contract; boundary/out-of-range behaviour for array access is covered separately in the ACoC/BCC/MBCC test suites written for other methods.
+Exceptional behaviour: Unlike `isSlotAvailable()`, this method does not call `inRange()` before accessing the array. It reads `this.mutable[row][col]` directly, so a `row` or `col` outside the board throws an uncaught `ArrayIndexOutOfBoundsException` instead of returning a boolean. Out-of-range input is outside the scope of this suite, which tests the method's normal in-range contract.
 
 #### 4. Input Domain Modeling
 ##### Interface-based characteristic
@@ -276,17 +274,17 @@ C1: Column Position
 | Partition | Description |
 |---|---|
 | A1: Boundary column | `col` is the first column of the board (`col = 0`) |
-| A2: Non-boundary column | `col` is not the first column (`col = 1`) |
+| A2: Non-boundary column | `col` is not a board edge (`col = 1`) |
 
 ##### Functionality-based characteristic
-C2: Slot Mutability State
+C2: Mutability State
 | Partition | Description |
 |---|---|
 | B1: Mutable | The slot's `mutable` flag is `true` |
 | B2: Immutable | The slot's `mutable` flag is `false` |
 
 #### 5. Combination Strategy (Each Choice Coverage)
-Each Choice Coverage requires that every block of every characteristic be exercised by at least one test case, using the minimum number of tests possible. Since both characteristics have exactly two blocks, the two blocks of C1 and the two blocks of C2 can each be paired once, so only **2 test cases** are needed to cover all four blocks — unlike All Combinations, which would require 2×2 = 4 test cases.
+Each Choice Coverage requires every block of every characteristic to appear in at least one test case. The minimum number of tests is the size of the largest characteristic. Both characteristics have two blocks, so 2 test cases are enough, compared with 2 x 2 = 4 for All Combinations.
 
 #### 6. ECC Test Requirements
 | Test | Column Position | Mutability State | Expected Result |
@@ -295,25 +293,23 @@ Each Choice Coverage requires that every block of every characteristic be exerci
 | T2 | A2: Non-boundary column | B2: Immutable | `false` |
 
 Each-choice check:
-- C1 blocks covered: A1 (T1), A2 (T2) — both appear.
-- C2 blocks covered: B1 (T1), B2 (T2) — both appear.
+- C1 blocks covered: A1 (T1), A2 (T2).
+- C2 blocks covered: B1 (T1), B2 (T2).
 
-All blocks from both characteristics appear at least once, so the two test cases satisfy Each Choice Coverage.
+Every block appears at least once, so the two tests satisfy Each Choice Coverage.
 
 #### 7. Test Values
-The test fixture (`SudokuPuzzleForTesting`) is a 9×9 board where slot `(0,0)` is set to value `"5"` and left mutable, and slot `(0,1)` is set to value `"3"` and locked (`mutable = false`).
-| Test | `row` | `col` | Column Position | Mutability State | Expected Result |
-|---|---:|---:|---|---|---|
-| T1 | `0` | `0` | Boundary column | Mutable | `true` |
-| T2 | `0` | `1` | Non-boundary column | Immutable | `false` |
+The fixture `SudokuPuzzleForTesting` is a 9x9 board created fresh before each test by `@Before`. Slot `(0,0)` holds `"5"` and is mutable. Slot `(0,1)` holds `"3"` and is locked (`mutable = false`).
+| Test | JUnit method | `row` | `col` | Column Position | Mutability State | Expected |
+|---|---|---:|---:|---|---|---|
+| T1 | `testIsSlotMutableBoundaryColumnMutable` | `0` | `0` | Boundary column | Mutable | `true` |
+| T2 | `testIsSlotMutableNonBoundaryColumnImmutable` | `0` | `1` | Non-boundary column | Immutable | `false` |
 
 ### ECC-2: makeSlotEmpty()
 
 #### 1. Testable Function
-```java
-makeSlotEmpty(int row, int col)
-```
-<br> This method clears the value at the given position by setting the corresponding board slot to an empty string, regardless of what value was previously stored there.
+Function: makeSlotEmpty(int row, int col)
+<br> This method clears the slot at the given position by setting it to an empty string, regardless of the value stored there before.
 
 #### 2. Parameters
 | Parameter | Description |
@@ -322,9 +318,9 @@ makeSlotEmpty(int row, int col)
 | `col` | The column index of the Sudoku board |
 
 #### 3. Return Value and Exceptional Behaviour
-This method has a `void` return type; it does not return a value. Its effect is observed indirectly through `getValue(row, col)` after the call.
+This method returns `void`. Its effect is observed through `getValue(row, col)` after the call.
 
-Exceptional behaviour: Like `isSlotMutable()`, this method does not call `inRange()` before writing to the array — it directly assigns `this.board[row][col] = ""`. Passing a `row` or `col` outside the board's bounds will throw an uncaught `ArrayIndexOutOfBoundsException`. This test suite verifies the method's normal (in-range) behaviour for slots in different prior states.
+Exceptional behaviour: Like `isSlotMutable()`, this method does not call `inRange()` before writing. It assigns `this.board[row][col] = ""` directly, so an out-of-range position throws an uncaught `ArrayIndexOutOfBoundsException`. Out-of-range input is outside the scope of this suite.
 
 #### 4. Input Domain Modeling
 ##### Interface-based characteristic
@@ -332,17 +328,17 @@ C1: Column Position
 | Partition | Description |
 |---|---|
 | A1: Boundary column | `col` is the first column of the board (`col = 0`) |
-| A2: Non-boundary column | `col` is a later column (`col = 2`) |
+| A2: Non-boundary column | `col` is not a board edge (`col = 2`) |
 
 ##### Functionality-based characteristic
 C2: Prior Cell Content
 | Partition | Description |
 |---|---|
-| B1: Has value | The slot already contains a non-empty value before clearing |
-| B2: Already empty | The slot is already an empty string `""` before clearing |
+| B1: Has value | The slot contains a non-empty value before clearing |
+| B2: Already empty | The slot is already `""` before clearing |
 
 #### 5. Combination Strategy (Each Choice Coverage)
-As with ECC-1, both characteristics have two blocks each, so pairing one block from C1 with one block from C2 in each test covers all four blocks in the minimum of **2 test cases**.
+Both characteristics have two blocks, so 2 test cases cover every block, compared with 2 x 2 = 4 for All Combinations.
 
 #### 6. ECC Test Requirements
 | Test | Column Position | Prior Cell Content | Expected Result (after clearing) |
@@ -351,20 +347,20 @@ As with ECC-1, both characteristics have two blocks each, so pairing one block f
 | T2 | A2: Non-boundary column | B2: Already empty | `""` |
 
 Each-choice check:
-- C1 blocks covered: A1 (T1), A2 (T2) — both appear.
-- C2 blocks covered: B1 (T1), B2 (T2) — both appear.
+- C1 blocks covered: A1 (T1), A2 (T2).
+- C2 blocks covered: B1 (T1), B2 (T2).
 
-All blocks from both characteristics appear at least once, so the two test cases satisfy Each Choice Coverage. T2 additionally demonstrates that the method is idempotent: clearing an already-empty slot still leaves it empty.
+Every block appears at least once, so the two tests satisfy Each Choice Coverage. T2 also shows that the method is idempotent: clearing an already empty slot leaves it empty.
 
 #### 7. Test Values
-Using the same `SudokuPuzzleForTesting` fixture: slot `(0,0)` holds value `"5"` (has value) before clearing; slot `(0,2)` is left at its default value `""` (already empty) and is not explicitly overridden by the fixture.
-| Test | `row` | `col` | Column Position | Prior Cell Content | Expected Result |
-|---|---:|---:|---|---|---|
-| T1 | `0` | `0` | Boundary column | Has value | `""` |
-| T2 | `0` | `2` | Non-boundary column | Already empty | `""` |
+The same fixture is used. Slot `(0,0)` holds `"5"` before clearing. Slot `(0,2)` keeps its default value `""`. Each test first asserts the precondition, so the test proves the slot really changed from its prior state. T1 also checks that the neighbouring slot `(0,1)` still holds `"3"`, confirming that only the target slot is cleared.
+| Test | JUnit method | `row` | `col` | Precondition | Expected after call |
+|---|---|---:|---:|---|---|
+| T1 | `testMakeSlotEmptyBoundaryColumnHasValue` | `0` | `0` | `getValue(0,0) = "5"` | `getValue(0,0) = ""`, `getValue(0,1) = "3"` |
+| T2 | `testMakeSlotEmptyNonBoundaryColumnAlreadyEmpty` | `0` | `2` | `getValue(0,2) = ""` | `getValue(0,2) = ""` |
 
 #### 8. Test Execution Results
-<img width="751" height="444" alt="image" src="https://github.com/user-attachments/assets/27179eef-36ac-44d4-afa1-d3dfe34bbf18" />
+<img width="799" height="506" alt="Screenshot 2569-09-23 at 23 17 47" src="https://github.com/user-attachments/assets/2c988956-f53c-4169-b8ae-afaf4f1d52ba" />
 
 ## 6. PWC — Sunattha Boonla-or
 
