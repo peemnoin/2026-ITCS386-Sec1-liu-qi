@@ -267,15 +267,15 @@ The method returns a boolean value:
 - `true` if the slot at `(row, col)` is mutable
 - `false` if the slot at `(row, col)` is locked
 
-Exceptional behaviour: Unlike `isSlotAvailable()`, this method does **not** call `inRange()` before accessing the array — it directly evaluates `this.mutable[row][col]`. Passing a `row` or `col` outside the board's bounds will therefore throw an uncaught `ArrayIndexOutOfBoundsException` instead of returning a boolean. This test suite focuses on the method's normal (in-range) contract; other contributions discuss invalid-coordinate behavior in other methods; they do not establish coverage of invalid inputs to this method.
+Exceptional behaviour: Unlike `isSlotAvailable()`, this method does **not** call `inRange()` before accessing the array — it directly evaluates `this.mutable[row][col]`. Passing a `row` or `col` outside the board's bounds will therefore throw an uncaught `ArrayIndexOutOfBoundsException` instead of returning a boolean. This test suite focuses on the method's normal (in-range) contract; boundary/out-of-range behaviour for array access is covered separately in the ACoC/BCC/MBCC test suites written for other methods.
 
 #### 4. Input Domain Modeling
 ##### Interface-based characteristic
 C1: Column Position
 | Partition | Description |
 |---|---|
-| A1: First column | `col` is the first column of the board (`col = 0`) |
-| A2: Later column | `1 ≤ col ≤ 8`, represented by `col = 1` |
+| A1: Boundary column | `col` is the first column of the board (`col = 0`) |
+| A2: Non-boundary column | `col` is not the first column (`col = 1`) |
 
 ##### Functionality-based characteristic
 C2: Slot Mutability State
@@ -285,13 +285,13 @@ C2: Slot Mutability State
 | B2: Immutable | The slot's `mutable` flag is `false` |
 
 #### 5. Combination Strategy (Each Choice Coverage)
-Each Choice Coverage requires that every block of every characteristic be exercised by at least one test case, ; minimizing the number of tests is a design choice, not an additional coverage requirement. Since both characteristics have exactly two blocks, the two blocks of C1 and the two blocks of C2 can each be paired once, so only **2 test cases** are needed to cover all four blocks — unlike All Combinations, which would require 2×2 = 4 test cases.
+Each Choice Coverage requires that every block of every characteristic be exercised by at least one test case, using the minimum number of tests possible. Since both characteristics have exactly two blocks, the two blocks of C1 and the two blocks of C2 can each be paired once, so only **2 test cases** are needed to cover all four blocks — unlike All Combinations, which would require 2×2 = 4 test cases.
 
 #### 6. ECC Test Requirements
 | Test | Column Position | Mutability State | Expected Result |
 |---|---|---|---|
-| T1 | A1: First column | B1: Mutable | `true` |
-| T2 | A2: Later column | B2: Immutable | `false` |
+| T1 | A1: Boundary column | B1: Mutable | `true` |
+| T2 | A2: Non-boundary column | B2: Immutable | `false` |
 
 Each-choice check:
 - C1 blocks covered: A1 (T1), A2 (T2) — both appear.
@@ -330,8 +330,8 @@ Exceptional behaviour: Like `isSlotMutable()`, this method does not call `inRang
 C1: Column Position
 | Partition | Description |
 |---|---|
-| A1: First column | `col` is the first column of the board (`col = 0`) |
-| A2: Later column | `1 ≤ col ≤ 8`, represented by `col = 2` |
+| A1: Boundary column | `col` is the first column of the board (`col = 0`) |
+| A2: Non-boundary column | `col` is a later column (`col = 2`) |
 
 ##### Functionality-based characteristic
 C2: Prior Cell Content
@@ -346,8 +346,8 @@ As with ECC-1, both characteristics have two blocks each, so pairing one block f
 #### 6. ECC Test Requirements
 | Test | Column Position | Prior Cell Content | Expected Result (after clearing) |
 |---|---|---|---|
-| T1 | A1: First column | B1: Has value | `""` |
-| T2 | A2: Later column | B2: Already empty | `""` |
+| T1 | A1: Boundary column | B1: Has value | `""` |
+| T2 | A2: Non-boundary column | B2: Already empty | `""` |
 
 Each-choice check:
 - C1 blocks covered: A1 (T1), A2 (T2) — both appear.
