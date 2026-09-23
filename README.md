@@ -125,19 +125,22 @@ The method returns a boolean value:
 
 #### 4. Input Domain Modeling
 
-**Functionality-based Characteristic**
+#### Functionality-based Characteristics
 
-* **C1: Board Completeness**
-  * **A1: Completely Full** — 100% of cells filled
-  * **A2: Almost Full** — Boundary state; exactly 1 cell empty
-  * **A3: Partially Filled** — Multiple cells empty
-  * **A4: Completely Empty** — All cells empty
+| Characteristic | Partition ID | Partition Description | Test Value / Condition |
+| :--- | :--- | :--- | :--- |
+| **C1: Board Completeness** | A1 | Completely Full | 100% of cells filled |
+| | A2 | Almost Full | Boundary state; exactly 1 cell empty |
+| | A3 | Partially Filled | Multiple cells empty |
+| | A4 | Completely Empty | All cells empty |
 
-**Interface-based Characteristic**
 
-* **C2: Board Dimension**
-  * **B1: Standard 9x9 board**
-  * **B2: Alternative 6x6 board**
+#### Interface-based Characteristics
+
+| Characteristic | Partition ID | Partition Description | Test Value / Condition |
+| :--- | :--- | :--- | :--- |
+| **C2: Board Dimension** | B1 | Standard board | 9x9 board |
+| | B2 | Alternative board | 6x6 board |
 
 #### 5. Base Choice
 
