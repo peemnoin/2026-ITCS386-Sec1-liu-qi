@@ -390,6 +390,66 @@ The same fixture is used. Slot `(0,0)` holds `"5"` before clearing. Slot `(0,2)`
 #### 8. Test Execution Results
 <img width="799" height="506" alt="Screenshot 2569-09-23 at 23 17 47" src="https://github.com/user-attachments/assets/2c988956-f53c-4169-b8ae-afaf4f1d52ba" />
 
+#### 9. Test Count
+#### Calculation for ECC-1: `isSlotMutable()`
+
+- **Characteristics (Q):** 2 (C1, C2)
+- **Partition Counts (Bᵢ):**
+  - **C1 (Column Position):** B₁ = 2
+  - **C2 (Mutability State):** B₂ = 2
+
+Each Choice Coverage requires every block of every characteristic to appear in at least one test. One test can use only one block from each characteristic, so the minimum number of tests equals the largest block count.
+
+Applying the ECC calculation formula:
+
+$$
+T_{ECC} = \max_{i=1}^{Q}(B_i)
+$$
+
+$$
+T_{isSlotMutable}
+= \max(2, 2)
+= 2\text{ test cases}
+$$
+
+Therefore, ECC-1 requires 2 test cases.
+
+#### Calculation for ECC-2: `makeSlotEmpty()`
+
+- **Characteristics (Q):** 2 (C1, C2)
+- **Partition Counts (Bᵢ):**
+  - **C1 (Column Position):** B₁ = 2
+  - **C2 (Prior Cell Content):** B₂ = 2
+
+Applying the ECC calculation formula:
+
+$$
+T_{ECC} = \max_{i=1}^{Q}(B_i)
+$$
+
+$$
+T_{makeSlotEmpty}
+= \max(2, 2)
+= 2\text{ test cases}
+$$
+
+Therefore, ECC-2 requires 2 test cases.
+
+Total Suite Test Count
+
+$$
+T_{Total}
+= T_{isSlotMutable} + T_{makeSlotEmpty}
+$$
+
+$$
+T_{Total}
+= 2 + 2
+= 4\text{ test cases}
+$$
+
+Therefore, the total ECC test count is 4 test cases.
+
 ## 6. PWC — Sunattha Boonla-or
 
 **Owner:** Sunattha Boonl-or (Grace)  
@@ -578,6 +638,80 @@ The fixture uses a 9x9 board that starts empty and mutable. Specific cells are a
 
 #### 8. Test Execution Results
 <img width="733" height="631" alt="Screenshot 2569-09-23 at 22 37 27" src="https://github.com/user-attachments/assets/9efb05ca-a8ab-4c7d-9792-8eb6ee9042d1" />
+
+#### 9. Test Count
+#### Calculation for PWC-1: `isSlotAvailable()`
+
+- **Characteristics (Q):** 3 (C1, C2, C3)
+- **Partition Counts (Bᵢ):**
+  - **C1 (Position Type):** B₁ = 2
+  - **C2 (Cell Content):** B₂ = 2
+  - **C3 (Mutability):** B₃ = 2
+- **Pairs to Cover:** 3 characteristic pairs × (2 × 2) = 12 pairs
+
+Pair-Wise Coverage requires every pair of blocks from two different characteristics to appear together in at least one test. The number of tests is at least the product of the two largest characteristics.
+
+Applying the PWC calculation formula:
+
+$$
+T_{PWC} \geq \left(\max_{i=1}^{Q} B_i\right) \times \left(\max_{j=1,\, j \neq i}^{Q} B_j\right)
+$$
+
+$$
+T_{isSlotAvailable}
+\geq 2 \times 2
+= 4\text{ test cases}
+$$
+
+The four tests in section 6 cover all 12 pairs, so the lower bound is reached.
+
+Therefore, PWC-1 requires 4 test cases (All Combinations would require 2 × 2 × 2 = 8).
+
+#### Calculation for PWC-2: `makeMove()`
+
+- **Characteristics (Q):** 4 (C1, C2, C3, C4)
+- **Partition Counts (Bᵢ):**
+  - **C1 (Value Validity):** B₁ = 2
+  - **C2 (Position):** B₂ = 2
+  - **C3 (Move Conflict):** B₃ = 2
+  - **C4 (Mutability):** B₄ = 2
+- **Pairs to Cover:** 6 characteristic pairs × (2 × 2) = 24 pairs
+
+Applying the PWC calculation formula:
+
+$$
+T_{PWC} \geq \left(\max_{i=1}^{Q} B_i\right) \times \left(\max_{j=1,\, j \neq i}^{Q} B_j\right)
+$$
+
+$$
+T_{makeMove}
+\geq 2 \times 2
+= 4\text{ test cases}
+$$
+
+The formula gives a lower bound only. With 4 tests, every pair of characteristics must show each of its 4 block combinations exactly once, so each characteristic uses each block exactly twice. If the first test uses the first block of every characteristic, each characteristic must place its second block in 2 of the remaining 3 tests. There are only 3 ways to choose 2 tests out of 3, so at most 3 characteristics can fit. Two characteristics sharing the same choice would never form a mixed pair. A fourth characteristic therefore needs one more test.
+
+$$
+T_{makeMove}
+= 5\text{ test cases}
+$$
+
+Therefore, PWC-2 requires 5 test cases, which is the minimum possible (All Combinations would require 2 × 2 × 2 × 2 = 16).
+
+Total Suite Test Count
+
+$$
+T_{Total}
+= T_{isSlotAvailable} + T_{makeMove}
+$$
+
+$$
+T_{Total}
+= 4 + 5
+= 9\text{ test cases}
+$$
+
+Therefore, the total PWC test count is 9 test cases.
 
 ## 7. MBCC — Wirunya Kaewthong
 
