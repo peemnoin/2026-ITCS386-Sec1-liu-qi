@@ -34,7 +34,7 @@ The team applies the five ISP combination criteria taught in class: All Combinat
 |---|---|---|---|---|
 | Veerakron No-in | 6688164 | ACoC | `inRange()` | `getValue()` |
 | Tinakome Rasripenngam | 6688095 | ECC | `isSlotMutable()` | `makeSlotEmpty()` |
-| Sunattha Boonl-or | 6688009 | PWC | `isSlotAvailable()` | `makeMove()` |
+| Sunattha Boonla-or | 6688009 | PWC | `isSlotAvailable()` | `makeMove()` |
 | Wirunya Kaewthong | 6688172 | MBCC | `makeMove()` | `numInBox()` (being revised) |
 | Piyada Chalermnontakarn | 6688239 | BCC | `isValidMove()` | `isSlotAvailable()` |
 
