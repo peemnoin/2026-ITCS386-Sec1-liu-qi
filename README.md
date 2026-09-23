@@ -1219,3 +1219,6 @@ For a 9x9 board the valid indices are 0 through 8, but the condition uses `<=`, 
 | `getValue(4,9)`, `getValue(9,4)`, `getValue(9,9)` | `""` | `ArrayIndexOutOfBoundsException` |
 
 These are manifestations of a single root defect, not several independent bugs. The ACoC suite documents this observed behaviour explicitly rather than hiding it, and other suites keep their coordinates inside the valid 0-8 range so the defect does not affect their results.
+## 10. Overall Test Results
+<img width="1376" height="627" alt="image" src="https://github.com/user-attachments/assets/71ec734a-051e-4d3a-a4fe-aca2f9494d0a" />
+
