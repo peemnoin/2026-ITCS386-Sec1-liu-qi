@@ -941,7 +941,7 @@ T3: col = -1 represents an invalid column position, causing the method to return
 T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore unavailable. The method returns false.
 
 #### 8. Test Execution Results
-<img width="706" height="614" alt="image" src="https://github.com/user-attachments/assets/c6208fa8-f8f3-494e-8073-8b0e876963e2" />
+<img width="843" height="792" alt="image" src="https://github.com/user-attachments/assets/e67a9416-e08b-4d56-9216-5e49c28eca47" />
 
 #### 9. Test Count
 #### Calculation for BCC-1: `isValidMove()`
