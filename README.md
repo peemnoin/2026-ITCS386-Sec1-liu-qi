@@ -826,46 +826,79 @@ C2: Column Position
 | B2: Invalid column | `col` is outside the Sudoku board range |
 
 ##### Functionality-based Characteristic
-C3: Move Conflict
-| Partition | Description |
-|---|---|
-| C1: No conflict | The value does not already exist in the same row, column, or box. |
-| C2: Conflict | The value already exists in the same row, column, or box. |
+### C3: Row Conflict
+| Block | Description | Base |
+|---|---|---|
+| C3.1 No Row Conflict | The value does not exist in the same row | ✓ |
+| C3.2 Row Conflict | The value already exists in the same row | |
+
+
+### C4: Column Conflict
+
+| Block | Description | Base |
+|---|---|---|
+| C4.1 No Column Conflict | The value does not exist in the same column | ✓ |
+| C4.2 Column Conflict | The value already exists in the same column | |
+
+
+### C5: Box Conflict
+
+| Block | Description | Base |
+|---|---|---|
+| C5.1 No Box Conflict | The value does not exist in the same 3×3 box | ✓ |
+| C5.2 Box Conflict | The value already exists in the same 3×3 box | |
 
 #### 5. Base Choice
-The base choices are:
-- C1: Row Position = A1: Valid row
-- C2: Column Position = B1: Valid column
-- C3: Move Conflict = C1: No conflict
-Therefore, the base test is: A1, B1, C1
+The base choice consists of:
+
+- C1: Valid Row
+- C2: Valid Column
+- C3: No Row Conflict
+- C4: No Column Conflict
+- C5: No Box Conflict
+
+Therefore, the base test is:
+(row, col, value) = (0, 0, "1")
+Expected result: true
 
 #### 6.  BCC Test Cases
-| Test | Row Position | Column Position | Move Conflict | Expected Result |
-|---|---|---|---|---|
-| T1 (Base) | A1: Valid | B1: Valid | C1: No conflict | `true` |
-| T2 | A2: Invalid | B1: Valid | C1: No conflict | `false` |
-| T3 | A1: Valid | B2: Invalid | C1: No conflict | `false` |
-| T4 | A1: Valid | B1: Valid | C2: Conflict | `false` |
+| Test | Row Position | Column Position | Row Conflict | Column Conflict | Box Conflict | Expected Result |
+|---|---|---|---|---|---|---|
+| T1 (Base) | Valid | Valid | No | No | No | true |
+| T2 | Invalid | Valid | No | No | No | false |
+| T3 | Valid | Invalid | No | No | No | false |
+| T4 | Valid | Valid | Yes | No | No | false |
+| T5 | Valid | Valid | No | Yes | No | false |
+| T6 | Valid | Valid | No | No | Yes | false |
 
 - **T1** is the base test using all base choices.
 - **T2** changes only the Row Position from valid to invalid.
 - **T3** changes only the Column Position from valid to invalid.
-- **T4** changes only the Move Conflict from no conflict to conflict.
+- **T4** changes only Row Conflict from no conflict to conflict.
+- **T5** changes only Column Conflict from no conflict to conflict.
+- **T6** changes only Box Conflict from no conflict to conflict.
 
 #### 7. Test Values
-The test values are derived from the BCC test requirements and the existing Sudoku board used in the project.
-| Test | `row` | `col` | `value` | Row Position | Column Position | Move Conflict | Expected Result |
-|---|---:|---:|---|---|---|---|---|
-| T1 (Base) | `0` | `0` | `"1"` | Valid | Valid | No conflict | `true` |
-| T2 | `-1` | `0` | `"1"` | Invalid | Valid | No conflict | `false` |
-| T3 | `0` | `-1` | `"1"` | Valid | Invalid | No conflict | `false` |
-| T4 | `0` | `0` | `"8"` | Valid | Valid | Conflict | `false` |
+| Test | row | col | value | Conflict Type | Expected Result |
+|---|---:|---:|---|---|---|
+| T1 (Base) | 0 | 0 | "1" | No conflict | true |
+| T2 | -1 | 0 | "1" | No conflict | false |
+| T3 | 0 | -1 | "1" | No conflict | false |
+| T4 | 0 | 0 | "8" | Row conflict | false |
+| T5 | 0 | 0 | "8" | Column conflict | false |
+| T6 | 0 | 0 | "8" | Box conflict | false |
 
 T1: Position (0,0) is within the board range, and value "1" does not conflict with any existing value in the same row, column, or box.
-T2: row = -1 represents an invalid row position, causing the method to return false.
-T3: col = -1 represents an invalid column position, causing the method to return false.
-T4: Value "8" already exists in the same row at position (0,2), creating a move conflict. Therefore, the method returns false.
 
+T2: row = -1 represents an invalid row position, causing the method to return false.
+
+T3: col = -1 represents an invalid column position, causing the method to return false.
+
+T4: Value "8" already exists in the same row at position (0,3), while being outside the same column and box. Therefore, the method returns false due to a row conflict.
+
+T5: Value "8" already exists in the same column at position (3,0), while being outside the same row and box. Therefore, the method returns false due to a column conflict.
+
+T6: Value "8" already exists in the same 3×3 box at position (1,1), while being outside the same row and column. Therefore, the method returns false due to a box conflict.
 ### BCC-2: isSlotAvailable()
 
 #### 1. Testable Function
@@ -947,26 +980,24 @@ T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore un
 #### Calculation for BCC-1: `isValidMove()`
 
 - **Base Tests (M):** 1 (Base Choice: Valid row, Valid column, No conflict)
-- **Characteristics (Q):** 3 (C1, C2, C3)
+- **Characteristics (Q):** 5
 - **Partition Counts & Non-Base Blocks (Bᵢ − mᵢ):**
-  - **C₁ (Row Position):** B₁ = 2, m₁ = 1 → B₁ − m₁ = 2 − 1 = 1
-  - **C₂ (Column Position):** B₂ = 2, m₂ = 1 → B₂ − m₂ = 2 − 1 = 1
-  - **C₃ (Move Conflict):** B₃ = 2, m₃ = 1 → B₃ − m₃ = 2 − 1 = 1
+  - **C1 (Row Position):** B₁ = 2, m₁ = 1 → 2 − 1 = 1
+  - **C2 (Column Position):** B₂ = 2, m₂ = 1 → 2 − 1 = 1
+  - **C3 (Row Conflict):** B₃ = 2, m₃ = 1 → 2 − 1 = 1
+  - **C4 (Column Conflict):** B₄ = 2, m₄ = 1 → 2 − 1 = 1
+  - **C5 (Box Conflict):** B₅ = 2, m₅ = 1 → 2 − 1 = 1
 
 Applying the BCC calculation formula:
 
-\[
-T_{BCC} = M\left[1+\sum_{i=1}^{Q}(B_i-m_i)\right]
-\]
+T_BCC = M [1 + Σ(Bᵢ − mᵢ)]
 
-\[
-T_{isValidMove}
-= 1\left[1+(1+1+1)\right]
-= 1[4]
-= 4 \text{ test cases}
-\]
+T_isValidMove = 1[1+(1+1+1+1+1)]
 
-Therefore, **BCC-1 requires 4 test cases**.
+T_isValidMove = 6 test cases
+
+
+Therefore, BCC-1 requires 6 test cases.
 
 ### Calculation for BCC-2: `isSlotAvailable()`
 
