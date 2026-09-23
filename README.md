@@ -113,7 +113,6 @@ Two base choices ($M = 2$) are selected to cover both post-move mutability state
 * **MM13 & MM27:** Test target current mutability by setting `mutable[4][4] = false` prior to making the move.
 * **MM14 & MM28:** Test replacement functionality on an editable cell containing an existing digit `"2"`.
 
----
 
 ### MBCC-2: boardFull()
 
@@ -175,16 +174,14 @@ Two base choices ($M = 2$) are selected:
 * **BF05:** Fixture constructs a standard 9x9 board with multiple empty cells. Returns `false`.
 * **BF06:** Fixture constructs a default initialized 9x9 board where all cells are `""`. Returns `false`.
 
----
 
-### 8. Test Execution Results
+#### 8. Test Execution Results
 
 <img width="974" height="716" alt="image" src="https://github.com/user-attachments/assets/7d0965c5-1e8f-4731-a10b-eddc9f242c41" />
 <img width="974" height="716" alt="image" src="https://github.com/user-attachments/assets/1251db71-3b3c-48ce-b2c0-e3108d8665d0" />
 
----
 
-### 9. Test Count Calculation
+#### 9. Test Count Calculation
 
 #### Calculation for MBCC-1: `makeMove()`
 
@@ -205,7 +202,6 @@ $$\sum_{i=1}^{7} (B_i - m_i) = 2 + 2 + 3 + 4 + 1 + 1 + 0 = 13 \text{ variations 
 
 $$T_{makeMove} = 2 \times \left[ 1 + 13 \right] = 2 \times 14 = 28 \text{ test cases}$$
 
----
 
 #### Calculation for MBCC-2: `boardFull()`
 
@@ -229,7 +225,6 @@ Consolidating the 2 duplicate combinations:
 
 $$T_{boardFull} = 8 - 2 = 6 \text{ unique test cases}$$
 
----
 
 #### Total Suite Test Count
 
