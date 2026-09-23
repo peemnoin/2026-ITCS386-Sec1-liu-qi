@@ -1006,33 +1006,33 @@ Therefore, BCC-1 requires 6 test cases.
 
 Applying the BCC calculation formula:
 
-\[
+$$
 T_{BCC} = M\left[1+\sum_{i=1}^{Q}(B_i-m_i)\right]
-\]
+$$
 
-\[
+$$
 T_{isSlotAvailable}
 = 1\left[1+(1+1+1)\right]
 = 1[4]
-= 4 \text{ test cases}
-\]
+= 4\text{ test cases}
+$$
 
-Therefore, **BCC-2 requires 4 test cases**.
+Therefore, BCC-2 requires 4 test cases.
 
-### Total Suite Test Count
+Total Suite Test Count
 
-\[
+$$
 T_{Total}
 = T_{isValidMove} + T_{isSlotAvailable}
-\]
+$$
 
-\[
+$$
 T_{Total}
 = 6 + 4
-= 10 \text{ test cases}
-\]
+= 10\text{ test cases}
+$$
 
-Therefore, the **total BCC test count is 8 test cases**.
+Therefore, the total BCC test count is 10 test cases.
 
 ## 9. Known defect in the production code
 
