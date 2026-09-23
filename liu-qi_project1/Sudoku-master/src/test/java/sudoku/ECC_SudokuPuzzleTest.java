@@ -37,16 +37,16 @@ public class ECC_SudokuPuzzleTest {
     // T1
     @Test
     public void testMakeSlotEmptyBoundaryColumnHasValue() {
-        Assert.assertEquals("5", puzzle.getValue(0, 0)); // precondition: slot has a value
+        Assert.assertEquals("5", puzzle.getValue(0, 0));
         puzzle.makeSlotEmpty(0, 0);
         Assert.assertEquals("", puzzle.getValue(0, 0));
-        Assert.assertEquals("3", puzzle.getValue(0, 1)); // neighbouring slot is not affected
+        Assert.assertEquals("3", puzzle.getValue(0, 1));
     }
 
     // T2
     @Test
     public void testMakeSlotEmptyNonBoundaryColumnAlreadyEmpty() {
-        Assert.assertEquals("", puzzle.getValue(0, 2)); // precondition: slot is already empty
+        Assert.assertEquals("", puzzle.getValue(0, 2));
         puzzle.makeSlotEmpty(0, 2);
         Assert.assertEquals("", puzzle.getValue(0, 2));
     }
