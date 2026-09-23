@@ -241,7 +241,35 @@ Each test starts with a fresh board. Existing-cell fixtures set `board` and `mut
 | GV11 | 9 | 9 | NO_CELL | `ArrayIndexOutOfBoundsException` |
 
 GV08, GV10, and GV11 expect `ArrayIndexOutOfBoundsException` in the characterization version. This records the boundary defect; it does not fix it.
-#### 8. Test Execution Results
+
+## 8. Defect report — D01: inclusive upper bounds
+
+**Location:** SudokuPuzzle.inRange(int row, int col)  
+**Type:** Off-by-one boundary defect  
+**Status:** Observed and documented; production code intentionally unchanged.
+
+The original condition is:
+
+```java
+return row <= this.ROWS && col <= this.COLUMNS
+        && row >= 0 && col >= 0;
+```
+
+For a dimension of 9, array indices run from 0 to 8. The condition accepts 9 because 9 <= 9 is true.
+
+| Reproduction | Correct expected behavior | Observed original behavior |
+|---|---|---|
+| inRange(4,9) | false | true |
+| inRange(9,4) | false | true |
+| inRange(9,9) | false | true |
+| getValue(4,9) | empty String | ArrayIndexOutOfBoundsException |
+| getValue(9,4) | empty String | ArrayIndexOutOfBoundsException |
+| getValue(9,9) | empty String | ArrayIndexOutOfBoundsException |
+
+getValue() relies on inRange(). When the faulty guard accepts a nonexistent cell, getValue() accesses board[row][col] and throws. The six failing correctness tests reveal multiple manifestations of the same root defect; they should not be reported as six independent bugs.
+
+The characterization tests retain these inputs and explicitly record the observed outcomes. If the defect is fixed later, these six characterization expectations must be reviewed.
+#### 9. Test Execution Results
 <img width="729" height="943" alt="image" src="https://github.com/user-attachments/assets/4f3a24c8-6bfe-4434-8bc1-884dafe6459e" />
 
 ## 5. ECC — Tinakome Rasripenngam
