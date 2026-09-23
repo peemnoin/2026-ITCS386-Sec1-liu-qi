@@ -242,7 +242,7 @@ Each test starts with a fresh board. Existing-cell fixtures set `board` and `mut
 
 GV08, GV10, and GV11 expect `ArrayIndexOutOfBoundsException` in the characterization version. This records the boundary defect; it does not fix it.
 
-## 8. Defect report — D01: inclusive upper bounds
+#### 8. Defect report — D01: inclusive upper bounds
 
 **Location:** SudokuPuzzle.inRange(int row, int col)  
 **Type:** Off-by-one boundary defect  
