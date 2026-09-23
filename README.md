@@ -1,7 +1,6 @@
 # 2026-ITCS386-Sec1-liu-qi
 
 ## Multiple Base Choice Coverage (MBCC)
----
 
 ### MBCC-1: makeMove()
 
