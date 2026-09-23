@@ -66,32 +66,8 @@ The HTML test report is generated at `build/reports/tests/test/index.html`. The 
 **Numbering:** Subsection numbers below are local to this contribution.
 **Scope:** Two logical test suites: `inRange()` and `getValue()`.
 
-> This section covers the contributor's two suites. The original production code is not modified.
+> Scope review: The ACoC suites cover the documented input partitions for inRange() and getValue(). The inRange() boundary cases expose the production method's inclusive upper-bound behavior, where index 9 is accepted although valid indices on a 9×9 board are 0–8. The expected results should therefore distinguish intended boundary behavior from the observed implementation behavior. See Section 10.
 
-### 1. Purpose and test strategy
-
-The tests apply Input Space Partitioning (ISP) and All Combinations Coverage (ACoC) to select concrete input combinations.
-
-The first test version used correctness expectations: coordinates outside a 9×9 board should be rejected, and getValue() should return an empty string for coordinates rejected as out of range. Its execution exposed six failures.
-
-The current version is a **characterization test suite**: it checks the observed behavior of the original implementation, including its known boundary defect. Six expected outcomes were changed; the inputs and number of test cases were not changed. A passing characterization test is not evidence that the boundary behavior is correct.
-
-### 2. Test environment and execution
-
-The original project configuration uses Gradle 5.2.1 and JUnit 4.12. Record the actual environment used for the submitted run with:
-
-```powershell
-java -version
-.\gradlew.bat --version
-```
-
-Place the new class at:
-
-```text
-src/test/java/sudoku/SudokuACoCTest.java
-```
-
-Keep a copy of each relevant report before rerunning, because generated reports may be overwritten. The assignment demonstration uses the existing Gradle build system.
 
 ### 3. Shared fixture and test isolation
 
@@ -115,29 +91,28 @@ This creates a new 9-row, 9-column board with 3×3 boxes. The constructor initia
 - No external resource needs cleanup, so `@After` is unnecessary.
 - JUnit discovers one test class containing 20 test methods. The two suites below are logical groups documented in comments and this report.
 
-### 4. Suite 1 — inRange(row, col)
-
-#### 4.1 Testable function and objective
+### ACoC-1: inRange(row, col)
+#### 1.Testable Function
 
 ```java
 public boolean inRange(int row, int col)
 ```
-
 Check the return value for all combinations of the modeled row and column categories. The current version explicitly records the original implementation's acceptance of coordinates equal to the board size.
 
-#### 4.2 Parameters, returns, and exceptional behavior
-
-| Item | Description |
+#### 2. Parameters
+| Parameter | Description |
 |---|---|
 | row | int: requested row index |
 | col | int: requested column index |
-| Implicit input | Initialized board with ROWS=9 and COLUMNS=9 |
-| Return type | boolean |
-| Correct bounds behavior | true iff 0 ≤ row < 9 and 0 ≤ col < 9 |
-| Current implementation | true iff 0 ≤ row ≤ 9 and 0 ≤ col ≤ 9 |
-| Exception for modeled cases | None expected; this method only compares integers |
+#### 3. Return Value
+The method returns a boolean value:
 
-#### 4.3 Input domain model
+- `true` if the coordinates are accepted as being within range
+- `false` if the coordinates are outside the range
+
+Exception for modeled cases | None expected; this method only compares integers |
+
+#### 4. Input Domain Modeling
 
 | ID | Characteristic | Type | Blocks and representatives |
 |---|---|---|---|
@@ -151,7 +126,7 @@ C1 and C2 are disjoint and collectively cover integer coordinates. The represent
 
 **Model limitation:** C3 is fully determined by C1/C2 and adds no independent test dimension. Its classification should be explained transparently; it should not be presented as additional independent coverage.
 
-#### 4.4 Why there are nine tests
+#### 4 Why there are nine tests
 
 The unconstrained product is 3×3×2=18 combinations. For each of the nine row/column block pairs, exactly one C3 value is feasible. Therefore nine combinations are excluded by the cell-existence constraint, leaving:
 
@@ -377,7 +352,9 @@ The characterization tests retain these inputs and explicitly record the observe
 ### ECC-1: isSlotMutable()
 
 #### 1. Testable Function
-Function: isSlotMutable(int row, int col)
+```java
+isSlotMutable(int row, int col)
+```
 <br> This method returns whether the slot at the given position is currently editable, based solely on the internal `mutable` flag for that cell.
 
 #### 2. Parameters
@@ -433,7 +410,9 @@ The test fixture (`SudokuPuzzleForTesting`) is a 9×9 board where slot `(0,0)` i
 ### ECC-2: makeSlotEmpty()
 
 #### 1. Testable Function
-Function: makeSlotEmpty(int row, int col)
+```java
+makeSlotEmpty(int row, int col)
+```
 <br> This method clears the value at the given position by setting the corresponding board slot to an empty string, regardless of what value was previously stored there.
 
 #### 2. Parameters
@@ -495,9 +474,11 @@ Using the same `SudokuPuzzleForTesting` fixture: slot `(0,0)` holds value `"5"` 
 ### PWC-1: isSlotAvailable()
 
 #### 1. Testable Function
-Function: isSlotAvailable(int row, int col)
+```java
+isSlotAvailable(int row, int col)
+```
 <br> This method checks whether a slot can be used, by verifying that the position is within the board range, the slot is empty, and the slot is mutable.
-
+The test suite applies Pair-Wise Coverage (PWC) to ensure that every pair of blocks from two different characteristics appears in at least one test case.
 #### 2. Parameters
 | Parameter | Description |
 |---|---|
@@ -506,63 +487,95 @@ Function: isSlotAvailable(int row, int col)
 
 #### 3. Return Value and Exceptional Behaviour
 The method returns a boolean value:
-- `true` if the slot is available (in range, empty, and mutable)
-- `false` if the slot is unavailable
+if the position is valid, the slot is empty, and the slot is mutable
+- false otherwise
 
-Exceptional behaviour: No exception is expected for the selected concrete cases. Index 9 is incorrectly accepted by the current guard and can still cause `ArrayIndexOutOfBoundsException`. The condition uses short-circuit evaluation (`inRange(row,col) && board[row][col].equals("") && isSlotMutable(row,col)`). When the position is out of range, the first condition is `false` and the board array is never accessed, so no `ArrayIndexOutOfBoundsException` occurs for positions such as `(-1, 0)`.
+Exceptional behaviour: No exception is expected for the selected concrete test cases.
 
+The test cases use only valid board positions. This is intentional because cell-content and mutability states can only be defined for an existing board cell. Therefore, no out-of-range position is combined with cell-content or mutability blocks in this PWC model.
 #### 4. Input Domain Modeling
 ##### Interface-based characteristic
 C1: Position
 | Partition | Description |
 |---|---|
-| A1: In range | Both `row` and `col` are within the board range |
-| A2: Out of range | `row` or `col` is outside the board range |
+| A1: Boundary Position | The selected cell is located at a boundary of the 9×9 board. Representative: (0,0) |
+| A2: Interior Position | The selected cell is located away from the board boundary. Representative: (4,4) |
 
 ##### Functionality-based characteristics
 C2: Cell Content
-| Partition | Description |
+ Partition | Description |
 |---|---|
-| B1: Empty | The slot value is an empty string `""` |
-| B2: Has value | The slot already contains a value |
+| B1: Empty | The selected slot contains `""` |
+| B2: Occupied | The selected slot contains a Sudoku value, represented by "5" |
 
 C3: Mutability
-| Partition | Description |
+ Partition | Description |
 |---|---|
-| C1: Mutable | The slot is editable (`mutable = true`) |
-| C2: Immutable | The slot is locked (`mutable = false`) |
+| C1: Mutable | The selected slot can be modified (`mutable = true`) |
+| C2: Immutable | The selected slot cannot be modified (`mutable = false`) |
+
+All three characteristics are independently realizable because both position categories refer to existing cells on the 9×9 board.
 
 #### 5. Combination Strategy (Pair-Wise Coverage)
 Pair-Wise Coverage requires every pair of blocks from two different characteristics to appear together in at least one test. This method has three characteristics of two blocks each, so All Combinations (ACoC) would need 2 x 2 x 2 = 8 tests. The product of the two largest block counts, 2 x 2 = 4, is a lower bound for an unconstrained pairwise design. These four abstract rows cover its pairs; their concrete feasibility is reviewed below.
 
 #### 6. PWC Test Requirements
-| Test | Position | Cell Content | Mutability | Expected Result |
+| Test | Position Type | Cell Content | Mutability | Expected Result |
 |---|---|---|---|---|
-| T1 | A1: In range | B1: Empty | C1: Mutable | `true` |
-| T2 | A1: In range | B2: Has value | C2: Immutable | `false` |
-| T3 | A2: Out of range | B1: Empty | C2: Immutable | `false` |
-| T4 | A2: Out of range | B2: Has value | C1: Mutable | `false` |
+| T1 | A1: Boundary Position | B1: Empty | C1: Mutable | true |
+| T2 | A1: Boundary Position | B2: Occupied | C2: Immutable | false |
+| T3 | A2: Interior Position | B1: Empty | C2: Immutable | false |
+| T4 | A2: Interior Position | B2: Occupied | C1: Mutable | false |
 
-Pair coverage check:
-- Position x Cell Content: (In range, Empty), (In range, Has value), (Out of range, Empty), (Out of range, Has value). All covered.
-- Position x Mutability: (In range, Mutable), (In range, Immutable), (Out of range, Immutable), (Out of range, Mutable). All covered.
-- Cell Content x Mutability: (Empty, Mutable), (Has value, Immutable), (Empty, Immutable), (Has value, Mutable). All covered.
+##### Pair Coverage Check
 
-All required label pairs appear at least once in the abstract table. This alone does not establish feasible input-model PWC coverage. In T3 and T4 the Cell Content and Mutability blocks do not affect the result because the out-of-range position short-circuits the evaluation. Those label assignments are retained from the member report but do not establish a real cell state at an invalid coordinate.
+**Position Type × Cell Content**
+
+- Boundary + Empty → T1
+- Boundary + Occupied → T2
+- Interior + Empty → T3
+- Interior + Occupied → T4
+
+All four pairs are covered.
+
+**Position Type × Mutability**
+
+- Boundary + Mutable → T1
+- Boundary + Immutable → T2
+- Interior + Immutable → T3
+- Interior + Mutable → T4
+
+All four pairs are covered.
+
+**Cell Content × Mutability**
+
+- Empty + Mutable → T1
+- Occupied + Immutable → T2
+- Empty + Immutable → T3
+- Occupied + Mutable → T4
+
+All four pairs are covered.
+
+Therefore, every pair of blocks from two different characteristics appears at least once.
 
 #### 7. Test Values
-The fixture uses a 9x9 board where every slot starts empty (`""`) and mutable. For the "has value" and "immutable" case, the slot at `(0,1)` is set to `"5"` and locked.
-| Test | `row` | `col` | Position | Cell Content | Mutability | Expected Result |
+The test fixture uses a 9×9 Sudoku board.
+
+The constructor initializes all cells as empty strings (`""`) and all cells as mutable (`true`). The test fixture directly modifies selected cells and their mutability states so that each required combination can be created.
+
+| Test | row | col | Position Type | Cell Content | Mutability | Expected Result |
 |---|---:|---:|---|---|---|---|
-| T1 | `0` | `0` | In range | Empty | Mutable | `true` |
-| T2 | `0` | `1` | In range | Has value | Immutable | `false` |
-| T3 | `-1` | `0` | Out of range | Empty | Immutable | `false` |
-| T4 | `0` | `-1` | Out of range | Has value | Mutable | `false` |
+| T1 | 0 | 0 | Boundary Position | Empty | Mutable | true |
+| T2 | 0 | 0 | Boundary Position | Occupied (`"5"`) | Immutable | false |
+| T3 | 4 | 4 | Interior Position | Empty | Immutable | false |
+| T4 | 4 | 4 | Interior Position | Occupied (`"5"`) | Mutable | false |
 
 ### PWC-2: makeMove()
 
 #### 1. Testable Function
-Function: makeMove(int row, int col, String value, boolean isMutable)
+```java
+ makeMove(int row, int col, String value, boolean isMutable)
+```
 <br> This method places a value into a slot only when the value is valid, the move does not conflict with the same row, column, or box, and the slot is currently mutable. Otherwise the board is left unchanged.
 
 #### 2. Parameters
