@@ -455,8 +455,6 @@ Therefore, the total ECC test count is 4 test cases.
 **Owner:** Sunattha Boonl-or (Grace)  
 **Numbering:** Subsection numbers below are local to this contribution.
 
-> **Model review:** Preserve the proposed cases, but do not claim completed PWC validation yet. An out-of-range coordinate has no target cell whose content or mutability can be set. In PWC-2/T5, a stored `"5"` also does not demonstrate a conflict with input `"X"`. See Section 10 for the required reconciliation with the Java tests.
-
 ### PWC-1: isSlotAvailable()
 
 #### 1. Testable Function
