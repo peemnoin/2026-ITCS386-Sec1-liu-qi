@@ -877,7 +877,7 @@ T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore un
 <img width="706" height="614" alt="image" src="https://github.com/user-attachments/assets/c6208fa8-f8f3-494e-8073-8b0e876963e2" />
 
 #### 9. Test Count
-### Calculation for BCC-1: `isValidMove()`
+#### Calculation for BCC-1: `isValidMove()`
 
 - **Base Tests (M):** 1 (Base Choice: Valid row, Valid column, No conflict)
 - **Characteristics (Q):** 3 (C1, C2, C3)
@@ -900,8 +900,6 @@ T_{isValidMove}
 \]
 
 Therefore, **BCC-1 requires 4 test cases**.
-
----
 
 ### Calculation for BCC-2: `isSlotAvailable()`
 
@@ -926,8 +924,6 @@ T_{isSlotAvailable}
 \]
 
 Therefore, **BCC-2 requires 4 test cases**.
-
----
 
 ### Total Suite Test Count
 
