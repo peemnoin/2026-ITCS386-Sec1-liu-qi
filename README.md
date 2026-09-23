@@ -241,6 +241,7 @@ Each test starts with a fresh board. Existing-cell fixtures set `board` and `mut
 | GV11 | 9 | 9 | NO_CELL | `ArrayIndexOutOfBoundsException` |
 
 GV08, GV10, and GV11 expect `ArrayIndexOutOfBoundsException` in the characterization version. This records the boundary defect; it does not fix it.
+#### 8. Test Execution Results
 <img width="729" height="943" alt="image" src="https://github.com/user-attachments/assets/4f3a24c8-6bfe-4434-8bc1-884dafe6459e" />
 
 ## 5. ECC — Tinakome Rasripenngam
@@ -361,6 +362,8 @@ Using the same `SudokuPuzzleForTesting` fixture: slot `(0,0)` holds value `"5"` 
 |---|---:|---:|---|---|---|
 | T1 | `0` | `0` | Boundary column | Has value | `""` |
 | T2 | `0` | `2` | Non-boundary column | Already empty | `""` |
+
+#### 8. Test Execution Results
 <img width="751" height="444" alt="image" src="https://github.com/user-attachments/assets/27179eef-36ac-44d4-afa1-d3dfe34bbf18" />
 
 ## 6. PWC — Sunattha Boonla-or
@@ -548,6 +551,8 @@ The fixture uses a 9x9 board that starts empty and mutable. Specific cells are a
 | T3 | `-1` | `0` | `"5"` | `(0,0)` locked | `""` |
 | T4 | `0` | `0` | `"X"` | `(0,0)` locked | `""` |
 | T5 | `-1` | `-1` | `"X"` | `(0,4)="5"` conflict, mutable | `""` |
+
+#### 8. Test Execution Results
 <img width="699" height="425" alt="image" src="https://github.com/user-attachments/assets/572d3a41-e53b-4b41-8652-4da20109fa25" />
 
 ## 7. MBCC — Wirunya Kaewthong
@@ -870,6 +875,28 @@ T4: The slot at (0,2) contains "8", so the slot is not empty and is therefore un
 
 #### 8. Test Execution Results
 <img width="706" height="614" alt="image" src="https://github.com/user-attachments/assets/c6208fa8-f8f3-494e-8073-8b0e876963e2" />
+
+#### 9. Test Count
+For BCC-1, there are three characteristics, and each characteristic has two blocks:
+\[
+N_{BCC} = 1 + (2-1) + (2-1) + (2-1)
+\]
+
+\[
+N_{BCC} = 4
+\]
+BCC-1 requires **4 test cases*
+
+BCC-2, there are also three characteristics, and each characteristic has two blocks:
+\[
+N_{BCC} = 1 + (2-1) + (2-1) + (2-1)
+\]
+
+\[
+N_{BCC} = 4
+\]
+
+Therefore, BCC-2 requires **4 test cases**.
 
 ## 9. Known defect in the production code
 
