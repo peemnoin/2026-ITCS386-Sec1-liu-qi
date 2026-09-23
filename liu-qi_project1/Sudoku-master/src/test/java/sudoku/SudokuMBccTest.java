@@ -4,6 +4,7 @@
  */
 package sudoku;
 
+
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -11,8 +12,9 @@ import static org.junit.Assert.*;
 /**
  * Multiple Base Choice Coverage (MBCC) in one test class.
  * MM01-MM28: makeMove() - 28 tests.
- * NB01-NB12: numInBox() - 12 tests.
- * Each @Test receives a fresh 9x9 puzzle through setUp().
+ * BF01-BF06: boardFull() - 6 tests.
+ * Total: 34 tests.
+ * Each @Test receives a fresh puzzle instance through setUp().
  */
 public class SudokuMBccTest {
     private SudokuPuzzle puzzle;
@@ -23,7 +25,7 @@ public class SudokuMBccTest {
                 new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9"});
     }
 
-    // Group 1: makeMove() - two bases and their one-characteristic variations.
+    // Group 1: makeMove() - two bases and their one-characteristic variations (MM01 - MM28)
     @Test
     public void testMM01_Base_Editable() {
         checkMove(4, 4, "5", "NONE", true, "", true);
@@ -164,68 +166,45 @@ public class SudokuMBccTest {
         checkMove(4, 4, "5", "NONE", true, "2", false);
     }
 
-    // Group 2: numInBox() - two bases and their one-characteristic variations.
+    // Group 2: boardFull() - two bases and their one-characteristic variations (BF01 - BF06)
     @Test
-    public void testNB01_Base_FIRST() {
-        checkBox(0, 0, "FIRST", true);
+    public void testBF01_BaseChoice1_CompletelyFull_9x9() {
+        SudokuPuzzle fullPuzzle = createFull9x9Board();
+        assertTrue(fullPuzzle.boardFull());
     }
 
     @Test
-    public void testNB02_RowBand_FIRST() {
-        checkBox(1, 0, "FIRST", true);
+    public void testBF02_VaryC2_CompletelyFull_6x6() {
+        SudokuPuzzle fullPuzzle = createFull6x6Board();
+        assertTrue(fullPuzzle.boardFull());
     }
 
     @Test
-    public void testNB03_ColumnBand_FIRST() {
-        checkBox(0, 1, "FIRST", true);
+    public void testBF03_BaseChoice2_AlmostFull_9x9() {
+        SudokuPuzzle almostFullPuzzle = createFull9x9Board();
+        almostFullPuzzle.board[8][8] = ""; // Boundary: clear exactly 1 slot
+        assertFalse(almostFullPuzzle.boardFull());
     }
 
     @Test
-    public void testNB04_Match_MIDDLE() {
-        checkBox(0, 0, "MIDDLE", true);
+    public void testBF04_VaryC2_AlmostFull_6x6() {
+        SudokuPuzzle almostFullPuzzle = createFull6x6Board();
+        almostFullPuzzle.board[5][5] = ""; // Boundary: clear exactly 1 slot
+        assertFalse(almostFullPuzzle.boardFull());
     }
 
     @Test
-    public void testNB05_Match_OUTSIDE() {
-        checkBox(0, 0, "OUTSIDE", false);
+    public void testBF05_VaryC1_PartiallyFilled_9x9() {
+        puzzle.makeMove(0, 0, "1", true);
+        assertFalse(puzzle.boardFull());
     }
 
     @Test
-    public void testNB06_Match_ABSENT() {
-        checkBox(0, 0, "ABSENT", false);
+    public void testBF06_VaryC1_CompletelyEmpty_9x9() {
+        assertFalse(puzzle.boardFull());
     }
 
-    @Test
-    public void testNB07_Base_LAST() {
-        checkBox(2, 2, "LAST", true);
-    }
-
-    @Test
-    public void testNB08_RowBand_LAST() {
-        checkBox(1, 2, "LAST", true);
-    }
-
-    @Test
-    public void testNB09_ColumnBand_LAST() {
-        checkBox(2, 1, "LAST", true);
-    }
-
-    @Test
-    public void testNB10_Match_MIDDLE() {
-        checkBox(2, 2, "MIDDLE", true);
-    }
-
-    @Test
-    public void testNB11_Match_OUTSIDE() {
-        checkBox(2, 2, "OUTSIDE", false);
-    }
-
-    @Test
-    public void testNB12_Match_ABSENT() {
-        checkBox(2, 2, "ABSENT", false);
-    }
-
-    // Prepare a move scenario, call makeMove(), and compare the full expected state.
+    // Helper: Prepare a move scenario, call makeMove(), and compare expected state
     private void checkMove(int row, int col, String value, String conflict,
                            boolean currentMutable, String oldValue, boolean requestedMutable) {
         puzzle.board[row][col] = oldValue;
@@ -247,7 +226,7 @@ public class SudokuMBccTest {
             expectedBoard[r] = puzzle.board[r].clone();
             expectedMutable[r] = puzzle.mutable[r].clone();
         }
-        // This suite's only accepted input value is "5".
+
         boolean accepted = "5".equals(value) && conflict.equals("NONE") && currentMutable;
         if (accepted) {
             expectedBoard[row][col] = value;
@@ -260,25 +239,46 @@ public class SudokuMBccTest {
         }
     }
 
-    // Prepare a box-search scenario, check its result, and verify no state changes.
-    private void checkBox(int rowBand, int colBand, String match, boolean expected) {
-        int firstRow = rowBand * 3;
-        int firstCol = colBand * 3;
-        if (match.equals("FIRST")) puzzle.board[firstRow][firstCol] = "5";
-        if (match.equals("MIDDLE")) puzzle.board[firstRow + 1][firstCol + 1] = "5";
-        if (match.equals("LAST")) puzzle.board[firstRow + 2][firstCol + 2] = "5";
-        if (match.equals("OUTSIDE")) puzzle.board[firstRow][(firstCol + 3) % 9] = "5";
-        String[][] before = new String[9][];
-        boolean[][] mutableBefore = new boolean[9][];
+    // Helper: Generate a full valid 9x9 Sudoku board
+    private SudokuPuzzle createFull9x9Board() {
+        SudokuPuzzle p = new SudokuPuzzle(9, 9, 3, 3,
+                new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9"});
+        int[][] pattern = {
+                {1,2,3, 4,5,6, 7,8,9},
+                {4,5,6, 7,8,9, 1,2,3},
+                {7,8,9, 1,2,3, 4,5,6},
+                {2,3,4, 5,6,7, 8,9,1},
+                {5,6,7, 8,9,1, 2,3,4},
+                {8,9,1, 2,3,4, 5,6,7},
+                {3,4,5, 6,7,8, 9,1,2},
+                {6,7,8, 9,1,2, 3,4,5},
+                {9,1,2, 3,4,5, 6,7,8}
+        };
         for (int r = 0; r < 9; r++) {
-            before[r] = puzzle.board[r].clone();
-            mutableBefore[r] = puzzle.mutable[r].clone();
+            for (int c = 0; c < 9; c++) {
+                p.board[r][c] = String.valueOf(pattern[r][c]);
+            }
         }
-        // Query the center of the selected box, regardless of match location.
-        assertEquals(expected, puzzle.numInBox(firstRow + 1, firstCol + 1, "5"));
-        for (int r = 0; r < 9; r++) {
-            assertArrayEquals("Board row " + r, before[r], puzzle.board[r]);
-            assertArrayEquals("Mutable row " + r, mutableBefore[r], puzzle.mutable[r]);
+        return p;
+    }
+
+    // Helper: Generate a full valid 6x6 Sudoku board
+    private SudokuPuzzle createFull6x6Board() {
+        SudokuPuzzle p = new SudokuPuzzle(6, 6, 3, 2,
+                new String[]{"1", "2", "3", "4", "5", "6"});
+        int[][] pattern = {
+                {1,2,3, 4,5,6},
+                {4,5,6, 1,2,3},
+                {2,3,1, 5,6,4},
+                {5,6,4, 2,3,1},
+                {3,1,2, 6,4,5},
+                {6,4,5, 3,1,2}
+        };
+        for (int r = 0; r < 6; r++) {
+            for (int c = 0; c < 6; c++) {
+                p.board[r][c] = String.valueOf(pattern[r][c]);
+            }
         }
+        return p;
     }
 }
