@@ -1,8 +1,8 @@
 ITCS386 Software Verification and Validation
 
-Project Phase 2
+# Project Phase 2
 
-1. Project Overview
+## 1. Project Overview
 
 This project evaluates the WooCommerce online shop through four testing approaches: API Testing, System Testing, Automated UI Testing, and Performance Testing.
 
@@ -11,7 +11,7 @@ The objective is to verify the correctness of API operations, validate complete 
 System Under Test: WooCommerce Online Shop
 Group: liu-qi (G01)
 
-2. Project Structure
+## 2. Project Structure
 
 project phase 2/
 │
@@ -30,9 +30,9 @@ project phase 2/
 │
 └── Performance testing/
 
-3. API Testing
+## 3. API Testing
 
-3.1 Overview
+### 3.1 Overview
 
 API Testing verifies the functionality and correctness of WooCommerce API operations using automated tests.
 
@@ -50,13 +50,13 @@ Create Product	WooCommerce REST API	POST
 Update Product	WooCommerce REST API	PUT
 Add Item to Cart	WooCommerce Store API	POST
 
-3.2 Test Design: Input Space Partitioning (ISP)
+### 3.2 Test Design: Input Space Partitioning (ISP)
 
 Input Space Partitioning (ISP) was used to design test inputs for each API operation.
 
 The input characteristics were identified from the API request parameters. Their possible values were divided into partitions representing valid and invalid inputs. Representative values were then selected from these partitions to derive the test cases.
 
-3.2.1 Create Product
+#### 3.2.1 Create Product
 
 Endpoint: POST /wp-json/wc/v3/products
 
@@ -90,7 +90,7 @@ CP09	Empty name	API response and product data validated
 
 A total of 9 test cases were designed and executed for Create Product.
 
-3.2.2 Update Product
+#### 3.2.2 Update Product
 
 Endpoint: PUT /wp-json/wc/v3/products/{id}
 
@@ -138,7 +138,7 @@ UP16	Omitted price	Original price retained
 
 A total of 16 test cases were designed and executed for Update Product.
 
-3.2.3 Add Item to Cart
+#### 3.2.3 Add Item to Cart
 
 Endpoint: POST /wp-json/wc/store/v1/cart/add-item
 
@@ -173,7 +173,7 @@ AC09	Missing Nonce header	Missing Nonce error
 
 A total of 9 test cases were designed and executed for Add Item to Cart.
 
-3.3 Test Execution
+### 3.3 Test Execution
 
 All API tests are automated using pytest. The test suites can be executed together or individually.
 
@@ -187,7 +187,7 @@ python -m pytest tests/test_create_product.py -v
 python -m pytest tests/test_update_product.py -v
 python -m pytest tests/test_add_to_cart.py -v
 
-3.4 Test Results
+### 3.4 Test Results
 
 All three API test suites were executed together.
 
@@ -213,7 +213,7 @@ The detailed test results are documented in API_TEST_RESULTS.md.
 
 The test execution screenshot is available at api_test_execution.png.
 
-3.5 Test Independence and Test Data
+### 3.5 Test Independence and Test Data
 
 Each test prepares the data and session it needs rather than relying on the execution order or data created by another test.
 
@@ -225,7 +225,7 @@ The Add Item to Cart tests do not place an order or complete checkout.
 
 API credentials are stored in a local .env file and excluded from Git tracking.
 
-3.6 Failure Analysis
+### 3.6 Failure Analysis
 
 Any failed test must be investigated to determine whether the cause is a system defect or an error in the test implementation.
 
@@ -237,7 +237,7 @@ For a confirmed system defect, document:
 
 The test execution output and relevant evidence are stored in the API testing/ directory.
 
-4. System Testing
+# 4. System Testing
 
 Objective: Verify complete end-to-end workflows across the staff and customer sides of the WooCommerce shop.
 
@@ -251,7 +251,7 @@ Test Results and Evidence: [To be completed]
 
 For detailed test cases, screenshots, and results, see the System testing/ directory.
 
-5. Automated UI Testing
+# 5. Automated UI Testing
 
 Objective: Automate selected system test scenarios through the WooCommerce user interface and verify the results displayed on the pages.
 
@@ -263,7 +263,7 @@ Test Results and Evidence: [To be completed]
 
 For scripts and execution evidence, see the UI testing/ directory.
 
-6. Performance Testing
+# 6. Performance Testing
 
 Objective: Evaluate the performance of the WooCommerce shop under different workload conditions.
 
@@ -280,14 +280,14 @@ Test Results and Analysis: [To be completed]
 
 For scripts, K6 summaries, and performance analysis, see the Performance testing/ directory.
 
-7. Team Information
+# 7. Team Information
 
 Course: ITCS386 Software Verification and Validation
 Group: liu-qi (G01)
 
 Group Members: [To be completed]
 
-8. Repository
+# 8. Repository
 
 GitHub Repository:
 https://github.com/peemnoin/2026-ITCS386-Sec1-liu-qi
