@@ -113,8 +113,11 @@ def test_update_product_empty_price(product, put_product):
     assert result["purchasable"] is False
 
 
-def test_update_product_non_numeric_price(product, put_product):
-    """UP07: Reject a non-numeric price instead of silently dropping it."""
+
+def test_update_product_non_numeric_price(
+    product, put_product, admin_api, admin_url
+):
+    """UP07: Reject a non-numeric price and retain the original price."""
     response = put_product(product["id"], {"regular_price": "abc"})
 
     assert response.status_code == 400, (
@@ -122,6 +125,20 @@ def test_update_product_non_numeric_price(product, put_product):
         f"{response.text}"
     )
     assert "message" in response.json()
+
+    # Verify that the original product price remains unchanged.
+    check_response = admin_api.get(
+        f"{admin_url}/products/{product['id']}",
+        timeout=REQUEST_TIMEOUT
+    )
+
+    assert check_response.status_code == 200, check_response.text
+
+    result = check_response.json()
+    assert result["regular_price"] == "199"
+    assert result["price"] == "199"
+    assert result["purchasable"] is True
+
 
 
 def test_update_product_empty_body(product, put_product):
