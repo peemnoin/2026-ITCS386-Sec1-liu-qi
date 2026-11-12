@@ -1,637 +1,192 @@
-import os
-import requests
-from dotenv import load_dotenv
+"""Test suite for the Update Product operation.
 
-load_dotenv()
+Endpoint: PUT /wp-json/wc/v3/products/{id}
+Test inputs come from Input Space Partitioning (see README section 3.2.2).
 
-BASE_URL = "http://157.85.102.236/shop/wp-json/wc/v3"
+Each test creates its own product through the `product` fixture, which is
+deleted automatically when the test ends. Expected results follow how a
+shop SHOULD behave; where the API behaves differently the test fails and
+is analysed as a defect (UP05, UP07).
+"""
 
-USERNAME = os.getenv("WC_API_USERNAME")
-PASSWORD = os.getenv("WC_API_PASSWORD")
+import pytest
+
+REQUEST_TIMEOUT = 30  # seconds
 
 
-def test_update_product_success():
-    """UP01: Update an existing product with valid data."""
-
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    # Create a test product first
-    product_data = {
-        "name": "G01 Test Product UP01",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
+@pytest.fixture
+def product(post_product):
+    """Create a fresh product (price 199) owned by the current test."""
+    response = post_product(
+        {
+            "name": "G01 Test Product UP",
+            "type": "simple",
+            "regular_price": "199",
+        }
     )
-
-    assert create_response.status_code == 201
-
-    product_id = create_response.json()["id"]
-
-    # Update the product name and price
-    updated_data = {
-        "name": "G01 Updated Product UP01",
-        "regular_price": "299"
-    }
-
-    update_response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
+    assert response.status_code == 201, (
+        f"Test setup failed: could not create product ({response.text})"
     )
+    return response.json()
 
-    assert update_response.status_code == 200
 
-    result = update_response.json()
+@pytest.fixture
+def put_product(admin_api, admin_url):
+    """Return a function that sends PUT /products/{id}."""
 
-    assert result["id"] == product_id
-    assert result["name"] == updated_data["name"]
+    def _put_product(product_id, payload):
+        return admin_api.put(
+            f"{admin_url}/products/{product_id}",
+            json=payload,
+            timeout=REQUEST_TIMEOUT,
+        )
+
+    return _put_product
+
+
+def test_update_product_success(product, put_product):
+    """UP01: Update an existing product with a valid name and price."""
+    payload = {"name": "G01 Updated Product UP01", "regular_price": "299"}
+
+    response = put_product(product["id"], payload)
+
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["id"] == product["id"]
+    assert result["name"] == payload["name"]
     assert result["regular_price"] == "299"
     assert result["price"] == "299"
     assert result["purchasable"] is True
 
 
-def test_update_product_non_existing_id():
-    """UP02: Verify that updating a non-existing product returns an error."""
+def test_update_product_non_existing_id(put_product):
+    """UP02: Reject an update for a product ID that does not exist."""
+    response = put_product(99999999, {"regular_price": "299"})
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    updated_data = {
-        "name": "G01 Updated Product UP02",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/99999999",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 400
-
+    assert response.status_code == 400, response.text
     result = response.json()
-
     assert result["code"] == "woocommerce_rest_product_invalid_id"
-    assert result["message"] == "Invalid ID."
     assert result["data"]["status"] == 400
 
 
-def test_update_product_invalid_id():
-    """UP03: Verify that updating a product with a non-numeric ID returns an error."""
+def test_update_product_non_numeric_id(put_product):
+    """UP03: A non-numeric ID matches no route, so the API returns 404."""
+    response = put_product("abc", {"regular_price": "299"})
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    updated_data = {
-        "name": "G01 Updated Product UP03",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/abc",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 404
-
+    assert response.status_code == 404, response.text
     result = response.json()
-
     assert result["code"] == "rest_no_route"
-    assert result["message"] == "No route was found matching the URL and request method."
     assert result["data"]["status"] == 404
 
 
-def test_update_product_empty_name():
-    """UP04: Verify API behavior when updating a product with an empty name."""
+def test_update_product_empty_name(product, put_product):
+    """UP04: An empty name is ignored and the original name is kept."""
+    response = put_product(product["id"], {"name": "", "regular_price": "299"})
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP04",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
-    )
-
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
-
-    # Update product with an empty name
-    updated_data = {
-        "name": "",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
+    assert response.status_code == 200, response.text
     result = response.json()
-
-    assert result["id"] == product_id
-    assert result["name"] == product_data["name"]
+    assert result["id"] == product["id"]
+    assert result["name"] == product["name"]
     assert result["regular_price"] == "299"
 
-def test_update_product_negative_price():
-    """UP05: Verify API behavior when updating a product with a negative price."""
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
+def test_update_product_negative_price(product, put_product):
+    """UP05: Reject a negative price. A shop must not sell at a negative price."""
+    response = put_product(product["id"], {"regular_price": "-100"})
 
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP05",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
+    assert response.status_code == 400, (
+        f"Expected 400 for negative price but got {response.status_code}: "
+        f"{response.text}"
     )
+    assert "message" in response.json()
 
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
 
-    # Update product with a negative price
-    updated_data = {
-        "regular_price": "-100"
-    }
+def test_update_product_empty_price(product, put_product):
+    """UP06: An empty price is accepted, but the product is not purchasable."""
+    response = put_product(product["id"], {"regular_price": ""})
 
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
-
+    assert response.status_code == 200, response.text
     result = response.json()
-
-    assert result["id"] == product_id
-    assert result["regular_price"] == "-100"
-    assert result["price"] == "-100"
-
-def test_update_product_empty_price():
-    """UP06: Verify API behavior when updating a product with an empty price."""
-
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP06",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
-    )
-
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
-
-    # Update product with an empty price
-    updated_data = {
-        "regular_price": ""
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
-
-    result = response.json()
-
-    assert result["id"] == product_id
+    assert result["id"] == product["id"]
     assert result["regular_price"] == ""
     assert result["price"] == ""
     assert result["purchasable"] is False
 
-def test_update_product_non_numeric_price():
-    """UP07: Verify API behavior when updating a product with a non-numeric price."""
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
+def test_update_product_non_numeric_price(product, put_product):
+    """UP07: Reject a non-numeric price instead of silently dropping it."""
+    response = put_product(product["id"], {"regular_price": "abc"})
 
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP07",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
+    assert response.status_code == 400, (
+        f"Expected 400 for non-numeric price but got {response.status_code}: "
+        f"{response.text}"
     )
+    assert "message" in response.json()
 
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
 
-    # Update product with a non-numeric price
-    updated_data = {
-        "regular_price": "abc"
-    }
+def test_update_product_empty_body(product, put_product):
+    """UP08: An empty request body changes nothing."""
+    response = put_product(product["id"], {})
 
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
-
+    assert response.status_code == 200, response.text
     result = response.json()
-
-    assert result["id"] == product_id
-    assert result["regular_price"] == ""
-    assert result["price"] == ""
-    assert result["purchasable"] is False
-
-def test_update_product_empty_body():
-    """UP08: Verify API behavior when updating a product with an empty request body."""
-
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP08",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
-    )
-
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
-
-    # Update product with an empty request body
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json={},
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
-
-    result = response.json()
-
-    assert result["id"] == product_id
-    assert result["name"] == product_data["name"]
+    assert result["id"] == product["id"]
+    assert result["name"] == product["name"]
     assert result["regular_price"] == "199"
     assert result["price"] == "199"
     assert result["purchasable"] is True
 
-def test_update_product_zero_id():
-    """UP09: Verify that updating a product with ID zero returns an error."""
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
+def test_update_product_zero_id(put_product):
+    """UP09: Reject product ID 0 (boundary value)."""
+    response = put_product(0, {"regular_price": "299"})
 
-    updated_data = {
-        "name": "G01 Updated Product UP09",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/0",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 400
-
+    assert response.status_code == 400, response.text
     result = response.json()
-
     assert result["code"] == "woocommerce_rest_product_invalid_id"
-    assert result["message"] == "Invalid ID."
     assert result["data"]["status"] == 400
 
-def test_update_product_negative_id():
-    """UP10: Verify that updating a product with a negative ID returns an error."""
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
+def test_update_product_negative_id(put_product):
+    """UP10: A negative ID matches no route, so the API returns 404."""
+    response = put_product(-1, {"regular_price": "299"})
 
-    updated_data = {
-        "name": "G01 Updated Product UP10",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/-1",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 404
-
+    assert response.status_code == 404, response.text
     result = response.json()
-
     assert result["code"] == "rest_no_route"
-    assert result["message"] == "No route was found matching the URL and request method."
     assert result["data"]["status"] == 404
 
-def test_update_product_alphanumeric_id():
-    """UP11: Verify that updating a product with an alphanumeric ID returns an error."""
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
+def test_update_product_without_name(product, put_product):
+    """UP11: Omitting the name keeps the original name."""
+    response = put_product(product["id"], {"regular_price": "299"})
 
-    updated_data = {
-        "name": "G01 Updated Product UP11",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/123abc",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 404
-
+    assert response.status_code == 200, response.text
     result = response.json()
-
-    assert result["code"] == "rest_no_route"
-    assert result["message"] == "No route was found matching the URL and request method."
-    assert result["data"]["status"] == 404
-
-def test_update_product_decimal_id():
-    """UP12: Verify API behavior when updating a product with a decimal ID."""
-
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    updated_data = {
-        "name": "G01 Updated Product UP12",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/1.5",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 404
-
-    result = response.json()
-
-    assert result["code"] == "rest_no_route"
-    assert result["message"] == "No route was found matching the URL and request method."
-    assert result["data"]["status"] == 404
-
-def test_update_product_id_with_spaces():
-    """UP13: Verify API behavior when updating a product with spaces in the ID."""
-
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    updated_data = {
-        "name": "G01 Updated Product UP13",
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/%20123%20",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 404
-
-    result = response.json()
-
-    assert result["code"] == "rest_no_route"
-    assert result["message"] == "No route was found matching the URL and request method."
-    assert result["data"]["status"] == 404
-
-def test_update_product_without_name():
-    """UP14: Verify that updating a product without a name field preserves the original name."""
-
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
-
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP14",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
-    )
-
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
-
-    # Update product without the name field
-    updated_data = {
-        "regular_price": "299"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
-
-    result = response.json()
-
-    assert result["id"] == product_id
-    assert result["name"] == product_data["name"]
+    assert result["name"] == product["name"]
     assert result["regular_price"] == "299"
     assert result["price"] == "299"
     assert result["purchasable"] is True
 
-def test_update_product_zero_price():
-    """UP15: Verify API behavior when updating a product with zero price."""
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
+def test_update_product_zero_price(product, put_product):
+    """UP12: Accept a zero price (boundary value)."""
+    response = put_product(product["id"], {"regular_price": "0"})
 
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP15",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
-    )
-
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
-
-    # Update product with zero price
-    updated_data = {
-        "regular_price": "0"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
-
+    assert response.status_code == 200, response.text
     result = response.json()
-
-    assert result["id"] == product_id
     assert result["regular_price"] == "0"
     assert result["price"] == "0"
     assert result["purchasable"] is True
 
-def test_update_product_without_price():
-    """UP16: Verify that updating a product without a price field preserves the original price."""
 
-    assert USERNAME, "Missing WC_API_USERNAME in .env"
-    assert PASSWORD, "Missing WC_API_PASSWORD in .env"
+def test_update_product_without_price(product, put_product):
+    """UP13: Omitting the price keeps the original price."""
+    response = put_product(product["id"], {"name": "G01 Updated Product UP13"})
 
-    # Create an independent test product
-    product_data = {
-        "name": "G01 Test Product UP16",
-        "type": "simple",
-        "regular_price": "199"
-    }
-
-    create_response = requests.post(
-        f"{BASE_URL}/products",
-        auth=(USERNAME, PASSWORD),
-        json=product_data,
-        timeout=30
-    )
-
-    assert create_response.status_code == 201
-    product_id = create_response.json()["id"]
-
-    # Update product without the regular_price field
-    updated_data = {
-        "name": "G01 Updated Product UP16"
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/products/{product_id}",
-        auth=(USERNAME, PASSWORD),
-        json=updated_data,
-        timeout=30
-    )
-
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-    assert response.status_code == 200
-
+    assert response.status_code == 200, response.text
     result = response.json()
-
-    assert result["id"] == product_id
-    assert result["name"] == updated_data["name"]
+    assert result["name"] == "G01 Updated Product UP13"
     assert result["regular_price"] == "199"
     assert result["price"] == "199"
     assert result["purchasable"] is True
