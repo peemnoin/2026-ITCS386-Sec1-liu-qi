@@ -1,4 +1,4 @@
-ITCS386 Software Verification and Validation
+# ITCS386 Software Verification and Validation
 
 # Project Phase 2
 
