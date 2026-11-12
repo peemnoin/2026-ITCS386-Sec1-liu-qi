@@ -110,9 +110,11 @@ The test execution completed with 27 passed and 4 failed test cases. The four fa
 | Add to Cart | 9 | 9 | 0 |
 | **Total** | **31** | **27** | **4** |
 
-**Execution Time:** 11.40 seconds
+**Execution Time:** 11.69 seconds
 
 **Overall Result:** 27 passed, 4 failed.
+
+![alt text](test_execution.png)
 
 The four failed test cases revealed API behaviors that did not meet the price validation requirements defined by the project team.
 
