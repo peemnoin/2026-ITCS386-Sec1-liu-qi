@@ -1,4 +1,3 @@
-
 # ITCS386 Software Verification and Validation
 
 # Project Phase 2
@@ -309,15 +308,13 @@ The scripts and the k6 summary of every run are in the `Performance testing/` fo
 2. Search for a product (`?s=shirt&post_type=product`).
 3. Open one of two product pages (Album or Beanie with Logo), chosen at random.
 
-Each virtual user waits 1 to 3 seconds between steps (0.5 to 1.5 seconds in the stress and spike tests). The scripts do not add items to the cart or place orders, because orders stay on the shared server for all groups.
+Each virtual user waits 1 to 3 seconds between steps (0.5 to 1.5 seconds in the stress test). The scripts do not add items to the cart or place orders, because orders stay on the shared server for all groups.
 
 | Test | Script | Virtual users (VUs) | Duration | Run date and time | Result files |
 |---|---|---|---|---|---|
 | Average-load | `avg_load_test.js` | 0 to 20 in 1 min, 20 for 5 min, then down | 7 min | 16 Nov 2026, 20:58 | `avg_load_20261116_2058.*` |
 | Stress | `stress_test.js` | 20, 40, 60, 80, 100 (2 min per step), then down | 11 min | 16 Nov 2026, 21:09 | `stress_20261116_2109.*` (includes `.csv`) |
 | Constant-load checks | `avg_load_test.js` with `--stage` | 5, 10, 12, 13, 15 (30 s ramp-up, then 2 min) | 2.5 min each | 16 Nov 2026, 21:34 to 21:47 | `vu05_*`, `vu10_*`, `vu12_*`, `vu13_*`, `vu15_*` |
-| Spike | `spike_test.js` | 5, jump to 80 in 10 s, hold 1 min, back to 5 for 3 min | about 5.5 min | [E: fill] | [E: fill] |
-| Soak | `soak_test.js` | 15 for 56 min (2 min ramp up and down) | 60 min | [E: fill] | [E: fill] |
 
 We added the constant-load checks because the stress test only showed that the response time went above 1 second somewhere between 8 and 12 VUs. Running a fixed number of VUs for 2 minutes gave a clearer answer.
 
@@ -326,14 +323,12 @@ We added the constant-load checks because the stress test only showed that the r
 Every script has two thresholds:
 
 - `http_req_duration: p(95) < 1000 ms`. The project asks when the response time goes above 1 second, so we used 1 second as the limit. We used p(95) instead of the average, because the average can hide a small number of very slow requests.
-- `http_req_failed: rate < 1%` for the average-load and soak tests, because under normal load almost no request should fail. We used `rate < 5%` for the stress and spike tests, because these tests push the system past normal load on purpose, so some errors are expected.
+- `http_req_failed: rate < 1%` for the average-load test, because under normal load almost no request should fail. We used `rate < 5%` for the stress test, because this test pushes the system past normal load on purpose, so some errors are expected.
 
 **Virtual users and duration:**
 
 - Average-load: we had no real traffic data, so we chose 20 VUs as a busy but normal number for a small shop. 5 minutes at a steady load is long enough to get stable results.
 - Stress: steps of 20 VUs up to 100, 2 minutes each, so we can see at which step the system starts to have problems.
-- Spike: a jump from 5 to 80 VUs in 10 seconds copies a sudden rush of users. The 3 minutes after the spike let us measure the recovery time.
-- Soak: 15 VUs is a moderate load. One hour is long enough to see if the system becomes slower over time.
 
 ### 6.3 Results
 
@@ -346,8 +341,6 @@ Every script has two thresholds:
 | Constant 15 VUs | 15 | 1.40 s | 0.54 s | 2.32 s | 0.00% | 4.94 | Failed |
 | Average-load (20 VUs) | 20 | 3.38 s | 1.63 s | 5.02 s | 0.00% | 4.65 | Failed |
 | Stress (up to 100 VUs) | 100 | 21.60 s | 8.64 s | 60.00 s | 0.25% | 4.73 | Failed |
-| Spike | [E] | [E] | [E] | [E] | [E] | [E] | [E] |
-| Soak | [E] | [E] | [E] | [E] | [E] | [E] | [E] |
 
 **Stress test by step.** We used the `.csv` output to measure the last 60 seconds of each step:
 
@@ -371,20 +364,10 @@ About 12 VUs. At 12 VUs, p(95) was 961 ms. At 13 VUs, it was 1,005 ms, which is 
 
 The system starts to show problems at about 13 VUs, where p(95) goes above 1 second (1,005 ms). The response time keeps getting worse as we add more users: p(95) was 3.40 s at 20 VUs and 25.50 s at 100 VUs. Errors start only at 95 to 100 VUs, where 8 requests (0.25%) failed with a timeout.
 
-**In the soak test, do the response time or the error rate get worse as the test goes on?**
-
-[E: fill]
-
-**In the spike test, how long does the system take to return to normal service after the spike?**
-
-[E: fill]
-
 **What do http_req_failed, http_req_duration and vus_max tell you about the system in each test?**
 
 - Average-load: `http_req_failed` was 0.00%, so the shop answered every request. `http_req_duration` p(95) was 3.38 s, so the shop is too slow for 20 users at the same time. `vus_max` was 20, so the test reached the planned load.
 - Stress: `http_req_failed` was 0.25%, and all failures were timeouts at the highest load. `http_req_duration` p(95) was 21.6 s and the maximum was 60 s, so users would wait a very long time. `vus_max` was 100, so the test reached the highest step.
-- Spike: [E: fill]
-- Soak: [E: fill]
 
 ### 6.5 How to run
 
@@ -394,8 +377,6 @@ Install k6 (for example `brew install k6` on macOS), then run the commands from 
 mkdir -p results
 k6 run avg_load_test.js --summary-export "results/avg_load_$(date +%Y%m%d_%H%M).json" | tee "results/avg_load_$(date +%Y%m%d_%H%M).txt"
 k6 run stress_test.js --out csv="results/stress_$(date +%Y%m%d_%H%M).csv" --summary-export "results/stress_$(date +%Y%m%d_%H%M).json" | tee "results/stress_$(date +%Y%m%d_%H%M).txt"
-k6 run spike_test.js --out csv="results/spike_$(date +%Y%m%d_%H%M).csv" --summary-export "results/spike_$(date +%Y%m%d_%H%M).json" | tee "results/spike_$(date +%Y%m%d_%H%M).txt"
-k6 run soak_test.js --out csv="results/soak_$(date +%Y%m%d_%H%M).csv" --summary-export "results/soak_$(date +%Y%m%d_%H%M).json" | tee "results/soak_$(date +%Y%m%d_%H%M).txt"
 ```
 
 Constant-load check (example with 12 VUs):
