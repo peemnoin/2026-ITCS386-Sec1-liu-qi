@@ -301,7 +301,7 @@ For scripts and execution evidence, see the `UI testing/` directory.
 
 ### 6.1 Overview
 
-We used k6 to run performance tests on the WooCommerce shop. The scripts and the k6 summary of every run are in the `Performance testing/` folder. Result files are in `Performance testing/results/`.
+The scripts and the k6 summary of every run are in the `Performance testing/` folder. Result files are in `Performance testing/results/`.
 
 **User scenario:** every script follows the same steps as a real visitor:
 
@@ -406,9 +406,6 @@ k6 run --stage 30s:12 --stage 2m:12 avg_load_test.js --summary-export "results/v
 
 k6 shows `thresholds on metrics 'http_req_duration' have been crossed` when the response time is above our limit. This is a test result, not an error in the script.
 
-**Test Results and Analysis:** [To be completed]
-
-For scripts, K6 summaries, and performance analysis, see the `Performance testing/` directory.
 
 ## 7. Team Information
 
