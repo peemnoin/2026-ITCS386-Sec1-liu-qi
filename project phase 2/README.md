@@ -416,6 +416,8 @@ Each virtual user waits 1 to 3 seconds between steps (0.5 to 1.5 seconds in the 
 
 We added the constant-load checks because the stress test only showed that the response time went above 1 second somewhere between 8 and 12 VUs. Running a fixed number of VUs for 2 minutes gave a clearer answer.
 
+**Result files.** Each run has a `.txt` file (the full k6 terminal output) and a `.json` file (the k6 summary). The stress, spike and soak runs also have a `.csv` file with the result of every request, which we used to measure the results over time. `report.html` is a one-page report of all runs. Open it in a web browser to see the tables and the response time charts. It has one tab for the 16 November runs and one tab for the 18 November runs.
+
 ### 6.2 Thresholds, virtual users and duration
 
 Every script has two thresholds:
@@ -454,7 +456,9 @@ Every script has two thresholds:
 | 80 VUs | 17.71 s | 13.27 s | 5.13 |
 | 100 VUs | 25.50 s | 17.36 s | 4.52 |
 
-**Changes between runs.** At 20 VUs, the average-load test (p(95) 3.38 s) and the 20 VU step of the stress test (p(95) 3.40 s) gave almost the same result, so our runs on 16 November were consistent. All groups share one server, and we ran our tests in the evening, a few days before the progress presentation. Other groups may have been testing at the same time, so the results may be different on another day.
+**Changes between runs.** We repeated all four tests on 18 November 2026 (17:35 to 19:01). The file names use the start time of the first test, 17:35. The results were close to the 16 November runs: p(95) was 2.85 s in the average-load test (3.38 s before), 22.06 s in the stress test (21.60 s), 10.38 s in the spike test (10.00 s) and 0.69 s in the soak test (0.66 s). The only clear change was in the stress test: no request failed on 18 November, while 8 requests timed out on 16 November. This may be because fewer groups were testing at the same time. Our answers above use the 16 November runs. `report.html` shows the charts for both days.
+
+At 20 VUs, the average-load test (p(95) 3.38 s) and the 20 VU step of the stress test (p(95) 3.40 s) gave almost the same result, so our runs on 16 November were consistent. All groups share one server, and we ran our tests in the evening, a few days before the progress presentation. Other groups may have been testing at the same time, so the results may be different on another day.
 
 ### 6.4 Answers to the questions
 
