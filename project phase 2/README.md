@@ -29,7 +29,7 @@ The objective is to verify the correctness of API operations, validate complete 
 │   │   │   ├── test_create_product.py
 │   │   │   └── test_update_product.py
 │   │   │
-│   │   ├── api_test_execution.png
+│   │   ├── test_execution.png
 │   │   ├── API_TEST_RESULTS.md
 │   │   ├── check_api.py
 │   │   ├── conftest.py
@@ -250,7 +250,7 @@ The four failed test cases revealed API behaviors that did not meet the price va
 
 The detailed test results are documented in [`API_TEST_RESULTS.md`](API%20testing/API_TEST_RESULTS.md).
 
-The test execution screenshot is available at [`api_test_execution.png`](API%20testing/api_test_execution.png).
+The test execution screenshot is available at [`test_execution.png`](API%20testing/test_execution.png).
 
 ### 3.5 Test Independence and Test Data
 
