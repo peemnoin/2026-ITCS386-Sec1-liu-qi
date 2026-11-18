@@ -286,15 +286,71 @@ For detailed test cases, screenshots, and results, see the `System testing/` dir
 
 ## 5. Automated UI Testing
 
-**Objective:** Automate selected system test scenarios through the WooCommerce user interface and verify the results displayed on the pages.
+### 5.1 Overview
 
-**Tools and Technologies:** [To be completed]
+Automated UI Testing verifies the three selected System Testing scenarios through the WooCommerce web interface using Selenium WebDriver.
 
-**Automated Test Cases:** [To be completed]
+Each automated test follows an end-to-end **Staff → Customer → Staff** workflow and verifies the results displayed on the pages rather than only performing UI actions.
 
-**Test Results and Evidence:** [To be completed]
+**Tools and Technologies:**
+- Python 3.12
+- Pytest
+- Selenium WebDriver
+- Google Chrome
+- python-dotenv
 
-For scripts and execution evidence, see the `UI testing/` directory.
+Separate browser sessions are used for staff and guest customer activities. Each execution creates unique timestamp-based test data to avoid conflicts with products, coupons, and orders from previous runs.
+
+### 5.2 Automated Test Cases
+
+| UI Test | Automated From | What the Automation Verifies | Result |
+|---|---|---|---|
+| UI-001 | SYS-001 | Product/category, quantity 2, THB 398 total, COD checkout, order details, and final order status | PASS |
+| UI-002 | SYS-002 | Invalid coupon rejection, valid 10% coupon, THB 40 discount, THB 360 final total, and staff order verification | PASS |
+| UI-003 | SYS-003 | Quantity boundaries (0 and 4), cart update/remove/re-add, THB 300 order, Processing status, and stock reduction from 3 to 1 | PASS |
+
+The tests use explicit waits and stable element locators such as IDs, names, and CSS selectors for dynamic page interactions.
+
+### 5.3 Test Results
+
+All three final recorded end-to-end executions completed successfully.
+
+- **UI-001:** Two items were purchased for THB 398. The resulting order was verified by staff and its final status was confirmed.
+- **UI-002:** The invalid coupon was rejected. The valid 10% coupon reduced the THB 400 subtotal by THB 40, producing a final total of THB 360. The resulting order was verified by staff.
+- **UI-003:** Invalid quantities 0 and 4 were rejected. Cart update, removal, and re-addition were verified. A THB 300 order for two items was created with Processing status, and the remaining stock was verified as 1 after checkout.
+
+### 5.4 Observed Limitations
+
+During UI-001, the guest storefront did not display a visible Search Bar. This limitation was recorded, and the newly created product was located through shop pagination instead.
+
+During UI-003, the public My Account page displayed a Login form only and did not provide a customer registration form. Conditional registration-related steps were therefore treated as **N/A**, and no system configuration was changed.
+
+### 5.5 How to Run
+
+From the `UI testing/` directory, run all three automated UI tests with:
+
+```bash
+pytest test_ui_001.py test_ui_002.py test_ui_003.py -v -s
+```
+
+Individual scenarios can also be executed with:
+
+```bash
+pytest test_ui_001.py -v -s
+pytest test_ui_002.py -v -s
+pytest test_ui_003.py -v -s
+```
+
+Staff credentials are loaded from a local `.env` file and are not stored directly in the test scripts.
+
+### 5.6 Test Evidence
+
+Full-run screen recordings and terminal execution results for UI-001, UI-002, and UI-003 are provided in the `UI testing/` directory.
+
+The evidence demonstrates the automated **Staff → Customer → Staff** workflows, page-level verification, and final Pytest results.
+
+Detailed test data, end-to-end flows, scripts, execution instructions, and evidence are documented in `UI testing/README.md`.
+
 
 ## 6. Performance Testing
 
