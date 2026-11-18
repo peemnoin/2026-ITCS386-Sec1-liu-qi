@@ -508,8 +508,6 @@ k6 shows `thresholds on metrics 'http_req_duration' have been crossed` when the 
 
 ## 7. Team Information
 
-## 7. Team Information
-
 **Course:** ITCS386 Software Verification and Validation
 
 **Group:** liu-qi (G01)
