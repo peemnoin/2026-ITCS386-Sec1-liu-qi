@@ -20,15 +20,11 @@ pip install -r requirements.txt
 ```
 
 ### 1.2 Credentials Configuration
-1. Copy `.env.example` to `.env`:
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-2. Open `.env` and enter Group 01's **Application Password** (from the private group account sheet):
-   ```text
-   WC_API_USERNAME=your_g01_api_username
-   WC_API_PASSWORD=your_g01_application_password
-   ```
+Create a new file named `.env` in the `API testing` folder and add these two lines. Replace the values with Group 01's API username and **Application Password** (from the private group account sheet):
+```text
+WC_API_USERNAME=your_g01_api_username
+WC_API_PASSWORD=your_g01_application_password
+```
    > **Security:** Never commit `.env` to Git (it is ignored by `.gitignore`).
 
 ### 1.3 Running the Tests
@@ -85,10 +81,9 @@ cd "project phase 2\UI testing"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-Copy-Item .env.example .env
 ```
 
-Edit `.env` with Group 01's **normal Staff web login**:
+Create a new file named `.env` in the `UI testing` folder and add these two lines. Replace the values with Group 01's **normal Staff web login**:
 ```text
 SHOP_ADMIN_USERNAME=your_g01_staff_username
 SHOP_ADMIN_PASSWORD=your_g01_staff_password
