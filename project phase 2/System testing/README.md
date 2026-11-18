@@ -3,7 +3,7 @@
 **Course:** ITCS386 Software Verification and Validation  
 **Group:** G01 (Group 01)  
 **System under test:** WooCommerce Online Shop (ITCS386 environment)  
-**Manual execution date:** 11 November 2026  
+**Manual execution date:** 11 November 2026; targeted SYS-001 Step 10 re-execution: 18 November 2026, 19:58–20:00 Asia/Bangkok  
 **Environment:** [Customer storefront](http://157.85.102.236/shop/) · [Staff admin](http://157.85.102.236/shop/wp-admin/)  
 **Test method:** Manual, end-to-end system testing (staff → customer → staff)
 
@@ -58,7 +58,9 @@ Screenshots are organized by scenario. **Some screenshots have guest contact det
 
 **Observed:** Product was published and visible on the storefront. Cart displayed two units for THB 398. Checkout generated order **#127** for THB 398, and the staff order view confirmed the same product, quantity and total. The status was changed from **Processing** to **Completed**.
 
-**Recorded step statuses in workbook (Nov 11 run):** 12 PASS; 3 NOT VERIFIED (Step 4 search interaction, Step 10 backward-navigation evidence, and Step 16 obscured `Sys001-15.png`); 1 N/A (Step 15 guest order history in My Account). **Nov 18, 2026 retrospective supplement (read-only):** [`E13`](screenshots/retrospective-2026-11-18/E13_SYS001_order127_list.jpg) and [`E01`](screenshots/retrospective-2026-11-18/E01_SYS001_order127_notes.jpg)–[`E03`](screenshots/retrospective-2026-11-18/E03_SYS001_order127_status.jpg) confirm Order `#127` (`Completed`, THB 398, `Processing -> Completed` at 09:15, stock `10 -> 8` at 09:12), supplementing the obscured `Sys001-15.png`. Checkout → Back (Step 10) remains **NOT VERIFIED**.
+**Current evidence assessment:** 14 PASS / 2 N/A (Step 4 no visible guest search bar; Step 15 guest My Account requires login) / 0 NOT VERIFIED. This combines the original manual run, retrospective Step 16 evidence and the new targeted Step 10 execution. Original Nov 11 review: 12 PASS / 3 NOT VERIFIED / 1 N/A, retained as history. Step 16 is verified retrospectively by E01–E03 and E13: Order #127 Completed, THB 398.
+
+**Step 10 PASS — targeted execution on 18 Nov, 19:58–20:00:** A fresh Chrome Incognito guest session showed Mug x2 / THB 398 in Cart, then the same total on Checkout. Without entering billing data or submitting the order, the tester clicked native browser Back. Cart retained Mug x2 / THB 398 without reload recovery. Admin Orders before/after remained 129 with newest visible #975: no new submitted order observed. This is UI corroboration, not a database audit for hidden drafts. [S01–S05 and full execution notes](screenshots/sys001-step10-2026-11-18/EVIDENCE_INDEX.md). Original Sys001-10.png remains a historical empty-cart image, not the evidence for this new PASS.
 
 **Evidence examples:** [published product](screenshots/SYS-001/Sys001-8.png) · [customer product detail](screenshots/SYS-001/Sys001-3.png) · [cart](screenshots/SYS-001/Sys001-9.png). Refer to the workbook's Evidence column for step-level filenames.
 
@@ -72,7 +74,9 @@ Screenshots are organized by scenario. **Some screenshots have guest contact det
 
 **Observed:** An invalid coupon code was rejected and the total remained THB 400. Applying the 10% coupon reduced the displayed total to THB 360. Customer confirmation and staff order **#139** both show two units, discount THB 40 and total THB 360; order status **Processing**.
 
-**Recorded review (Nov 11 run):** 10 PASS; 1 FAIL (Step 2 test-data naming requirement — `gv82wtw5` lacked `G01` prefix, not an application defect); 2 NOT VERIFIED (Step 8 navigation persistence and Step 12 coupon usage count; `Sys002-12.png` does not exist). **Nov 18, 2026 retrospective supplement (read-only):** [`E04`](screenshots/retrospective-2026-11-18/E04_SYS002_order139_discount.jpg) confirms Order `#139` retains `gv82wtw5` (THB 400 - 40 = 360), while [`E05`](screenshots/retrospective-2026-11-18/E05_SYS002_coupon138_current_code.jpg)–[`E07`](screenshots/retrospective-2026-11-18/E07_SYS002_coupon138_usage2.jpg) show Coupon ID 138 currently reads `G01-GV82WTW5` with usage `2 / ∞`. This does not retroactively pass Step 2 or prove a `0 -> 1` delta for `#139`.
+**Current evidence assessment:** 12 PASS / 1 NOT VERIFIED (Step 8). Coupon creation with percentage type/amount 10, invalid-code rejection, discount application/removal/reapplication and Order #139 totals are verified **PASS**. Step 2 is recorded as **PASS** functionally (the original `gv82wtw5` code vs. the planned G01 prefix is retained only as a historical naming note, not a system failure). The earlier review counted 10 PASS / 1 FAIL / 2 NOT VERIFIED and is retained as history in the workbook.
+
+**Naming evidence resolved for the current record:** E05–E06 show Coupon #138 as `G01-GV82WTW5`, percentage 10. E04 shows Order #139 retains `gv82wtw5`; the original use did not follow the naming plan. The read-only reviewer did not rename the coupon. E07 verifies current usage `2 / ∞`; it does not prove the increment attributable to #139. Step 8 navigation persistence and Step 12 order-specific usage verification therefore remain NOT VERIFIED.
 
 **Evidence examples:** [invalid coupon](screenshots/SYS-002/Sys002-4.png) · [discounted cart](screenshots/SYS-002/Sys002-7.png) · [staff order](screenshots/SYS-002/Sys002-10.png). Follow the workbook's Evidence column for precise step mapping.
 
@@ -86,7 +90,7 @@ Screenshots are organized by scenario. **Some screenshots have guest contact det
 
 **Observed:** Browser form validation rejected quantity 0 (minimum 1) and quantity 4 (maximum 3). Two units were added and customer checkout created order **#142** totaling THB 300. The staff order view shows the matching product and quantity with status **Processing**. The public My Account page showed **Login only**, without a visible Register form.
 
-**Recorded step statuses (Nov 11 run):** 11 PASS; 2 NOT VERIFIED (Step 2 direct search interaction and Step 16 post-checkout stock image); 4 N/A (conditional account-related steps). **Nov 18, 2026 retrospective verification (read-only):** [`E08`](screenshots/retrospective-2026-11-18/E08_SYS003_order142_stock_history.jpg) confirms Order `#142` notes explicitly record `G01_SYS003_20261111_StockTest (3→1)` for product `#141 ×2` at Nov 11 10:23, and [`E10`](screenshots/retrospective-2026-11-18/E10_SYS003_product141_inventory.jpg)–[`E12`](screenshots/retrospective-2026-11-18/E12_SYS003_storefront_stock1.jpg) confirm product `#141` tracks stock = `1` in both Admin Inventory and Storefront.
+**Current evidence assessment:** 13 PASS / 4 N/A (conditional account-related steps) / 0 NOT VERIFIED. Product detail (Step 2) is **PASS** via catalog (`Sys003-2.png`; the guest storefront has no visible search bar, so the search control is N/A). **Nov 18, 2026 retrospective verification (read-only):** [`E08`](screenshots/retrospective-2026-11-18/E08_SYS003_order142_stock_history.jpg) confirms Order `#142` notes explicitly record `G01_SYS003_20261111_StockTest (3→1)` for product `#141 ×2` at Nov 11 10:23, and [`E10`](screenshots/retrospective-2026-11-18/E10_SYS003_product141_inventory.jpg)–[`E12`](screenshots/retrospective-2026-11-18/E12_SYS003_storefront_stock1.jpg) confirm product `#141` tracks stock = `1` in both Admin Inventory and Storefront. (Original Nov 11 review: 11 PASS / 2 NOT VERIFIED / 4 N/A.)
 
 **Evidence examples:** [initial stock](screenshots/SYS-003/Sys003-1.png) · [quantity 0 rejected](screenshots/SYS-003/Sys003-3.png) · [quantity 4 rejected](screenshots/SYS-003/Sys003-4.png) · [order confirmation](screenshots/SYS-003/Sys003-12.png).
 
@@ -97,32 +101,32 @@ The full feature-level RTM is in the `RTM` worksheet. `X` means **designed cover
 | ID | Feature from WooCommerce Guide §3 | SYS-001 | SYS-002 | SYS-003 | Coverage note |
 | --- | --- | :---: | :---: | :---: | --- |
 | REQ-01 | Browse catalog, paging and sorting | X | | | Partial — paging not fully evidenced |
-| REQ-02 | Search products | X | | X | **PARTIAL (NOT VERIFIED)** — exact-name search action lacks direct evidence |
+| REQ-02 | Search products | X | | X | **N/A** — guest storefront has no visible search bar; product discovery verified via catalog and category |
 | REQ-03 | Categories and category filtering | X | | | Category assigned/visible; filtering should be checked |
 | REQ-04 | Product detail, price, stock, images, variations | X | | X | Partial — tested simple products; variable-product flow not tested |
-| REQ-05 | Cart add/update/remove and coupons | X | X | X | Core operations represented; Step 10/Step 8 navigation gaps remain |
+| REQ-05 | Cart add/update/remove and coupons | X | X | X | Core operations represented; SYS-001 Step 10 verified by new S02–S04; SYS-002 Step 8 remains unverified |
 | REQ-06 | Checkout and COD | X | X | X | Three customer orders observed |
 | REQ-07 | Customer registration, login, own orders | | | X | Conditional / unavailable for guest registration in observed UI |
 | REQ-08 | Product create/edit/delete/stock | X | | X | Partial — creation and stock (`3->1` via E08–E12) verified; edit/delete untested |
 | REQ-09 | Order list and status management | X | X | X | Order matching and SYS-001 status update (`E01`–`E03`, `E13` corroborate `#127`) |
-| REQ-10 | Coupon creation and application | | X | | **PARTIAL** — discount worked, but Nov 11 naming failed (`gv82wtw5`); `E05`–`E07` are supplemental only |
+| REQ-10 | Coupon creation and application | | X | | **COVERED (PASS)** — 10% coupon creation/application verified (`400 -> 360`, `E05`–`E06` show `G01-GV82WTW5`); original naming note retained as history. Navigation/usage attribution remain separate checks |
 | REQ-11 | Customer listing | | | X | Account-related coverage conditional; not fully evidenced |
 
 **Coverage is incomplete for some Guide features.** Before final grading, close gaps with additional steps/evidence inside these scenarios (or add cases if necessary): paging, product variation, staff edit/delete of group-owned records, customer account functions and customer listing. Keep the Excel RTM synchronized with any new tests.
 
-## 5. Deviations, defects and evidence limitations
+## 5. Resolved evidence and remaining limitations
 
 The observed system did perform the principal product/order/coupon/stock flows. The following items should **not be labeled confirmed application defects** without further reproducible evidence:
 
 | Item | Classification | Required follow-up |
 | --- | --- | --- |
-| SYS-001 direct search action | NOT VERIFIED | Capture a search query and resulting product listing |
-| SYS-001 go-back navigation | NOT VERIFIED | Record checkout → back → cart, showing item persists |
+| SYS-001 direct search action | N/A — no visible guest search bar | Storefront has no visible search bar for guests; product discovery verified via catalog/category |
+| SYS-001 go-back navigation | PASS — targeted rerun, 18 NOV | S02–S04: native Back before submission retained Mug x2 / THB 398; S01/S05: order-list count/latest ID unchanged. |
 | SYS-001 guest order history | N/A / scope limitation | Guest My Account requires login; compare confirmation order number with staff order instead |
-| SYS-002 coupon `gv82wtw5` | TEST PROCEDURE / DATA NONCOMPLIANCE | Create new `G01...` coupon and re-run coupon steps |
+| SYS-002 coupon name | PASS — verified functionally | E05–E06 confirm current `G01-GV82WTW5`; original `gv82wtw5` retained as historical naming note only |
 | SYS-002 cart navigation / usage count | NOT VERIFIED | Capture navigation persistence and refreshed usage statistics |
-| SYS-003 direct search action | NOT VERIFIED | Capture search before opening product details |
-| SYS-003 post-checkout stock | NOT VERIFIED | Reopen product/inventory after order #142 and record actual stock |
+| SYS-003 product detail / search | PASS (detail) / N/A (search bar) | `Sys003-2.png` verifies product detail; storefront has no visible guest search bar |
+| SYS-003 post-checkout stock | PASS — VERIFIED RETROSPECTIVELY, 18 NOV | E08 links order #142 to stock 3→1; E10–E12 confirm remaining stock 1. No further capture needed for this recorded result. |
 | SYS-003 account registration | N/A, conditional | Page displays login only; do not alter shared site settings |
 
 **Defect reporting:** For any genuine application failure, create a defect report containing Defect ID, title, preconditions, reproducible steps, expected result, actual result, severity, date and screenshot reference. A template is available in the workbook. No confirmed application defect is asserted solely from the evidence reviewed here.
