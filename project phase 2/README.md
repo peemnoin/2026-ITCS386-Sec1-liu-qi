@@ -293,6 +293,7 @@ Automated UI Testing verifies the three selected System Testing scenarios throug
 Each automated test follows an end-to-end **Staff → Customer → Staff** workflow and verifies the results displayed on the pages rather than only performing UI actions.
 
 **Tools and Technologies:**
+
 - Python 3.12
 - Pytest
 - Selenium WebDriver
@@ -303,11 +304,11 @@ Separate browser sessions are used for staff and guest customer activities. Each
 
 ### 5.2 Automated Test Cases
 
-| UI Test | Automated From | What the Automation Verifies | Result |
-|---|---|---|---|
-| UI-001 | SYS-001 | Product/category, quantity 2, THB 398 total, COD checkout, order details, and final order status | PASS |
-| UI-002 | SYS-002 | Invalid coupon rejection, valid 10% coupon, THB 40 discount, THB 360 final total, and staff order verification | PASS |
-| UI-003 | SYS-003 | Quantity boundaries (0 and 4), cart update/remove/re-add, THB 300 order, Processing status, and stock reduction from 3 to 1 | PASS |
+| UI Test | Automated From | What the Automation Verifies |
+|---|---|---|
+| UI-001 | SYS-001 | Product/category, quantity, cart and checkout total, COD checkout, order details, and final order status |
+| UI-002 | SYS-002 | Invalid and valid coupon behavior, discount calculation, checkout total, and staff order verification |
+| UI-003 | SYS-003 | Quantity boundaries, cart update/remove/re-add, checkout, order status, and remaining stock |
 
 The tests use explicit waits and stable element locators such as IDs, names, and CSS selectors for dynamic page interactions.
 
@@ -315,9 +316,13 @@ The tests use explicit waits and stable element locators such as IDs, names, and
 
 All three final recorded end-to-end executions completed successfully.
 
-- **UI-001:** Two items were purchased for THB 398. The resulting order was verified by staff and its final status was confirmed.
-- **UI-002:** The invalid coupon was rejected. The valid 10% coupon reduced the THB 400 subtotal by THB 40, producing a final total of THB 360. The resulting order was verified by staff.
-- **UI-003:** Invalid quantities 0 and 4 were rejected. Cart update, removal, and re-addition were verified. A THB 300 order for two items was created with Processing status, and the remaining stock was verified as 1 after checkout.
+| UI Test | Actual Result | Status |
+|---|---|---|
+| UI-001 | Two items were purchased for THB 398. The resulting order was verified by staff, and the order status was updated from Processing to Completed and verified by staff. | PASS |
+| UI-002 | The invalid coupon was rejected. The valid 10% coupon reduced the THB 400 subtotal by THB 40, resulting in a final total of THB 360. The resulting order was verified by staff. | PASS |
+| UI-003 | Quantities 0 and 4 were rejected. Cart update, removal, and re-addition were verified. A THB 300 order for two items was created with Processing status, and the remaining stock was verified as 1. | PASS |
+
+The automated tests verify visible page results such as cart and checkout totals, coupon discounts, order details and status, browser quantity validation, and inventory changes.
 
 ### 5.4 Observed Limitations
 
