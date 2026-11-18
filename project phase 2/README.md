@@ -508,11 +508,22 @@ k6 shows `thresholds on metrics 'http_req_duration' have been crossed` when the 
 
 ## 7. Team Information
 
+## 7. Team Information
+
 **Course:** ITCS386 Software Verification and Validation
 
 **Group:** liu-qi (G01)
 
-**Group Members:** Sunattha Boonla-or (6688009) | Tinakome Rasripenngam (6688095) | Veerakron No-in (6688164) | Wirunya Kaewthong (6688172) | Piyada Chalermnontakarn (6688239)
+### Responsibilities
+
+| Part | Member | Student ID | Responsibilities |
+|---|---|---|---|
+| A | Piyada Chalermnontakarn | 6688239 | API testing: tested 3 API operations with pytest, designed test inputs with input space partitioning, and wrote the test results and defect analysis. |
+| B | Wirunya Kaewthong | 6688172 | System testing: designed at least 3 manual test case scenarios, created the requirement traceability matrix, tested both the staff and customer sides, and recorded the results with screenshots. |
+| C | Veerakron No-in | 6688164 | Automated UI testing: helped B plan the test case structure from the start, chose 3 system test cases to automate with Selenium WebDriver, and saved screenshots and recordings. |
+| D | Sunattha Boonl-or | 6688009 | Performance testing (k6): average-load and stress tests, and analysed at which point the response time goes above 1 second. |
+| E | Tinakome Rasripenngam | 6688095 | Performance testing (k6): spike and soak tests, analysed the recovery time and performance degradation, and combined the performance testing results. |
+
 
 ## 8. Repository
 
