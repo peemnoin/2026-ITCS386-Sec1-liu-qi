@@ -20,11 +20,18 @@ PASSWORD = os.getenv("SHOP_ADMIN_PASSWORD")
 # Goal: Automate SYS-001 from Staff product creation
 # through Guest COD checkout and Staff order completion.
 
+def _create_chrome_driver():
+    """Create a Chrome WebDriver with HTTPS-Upgrade disabled for the plain-HTTP SUT."""
+    options = webdriver.ChromeOptions()
+    options.add_argument("--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable")
+    return webdriver.Chrome(options=options)
+
+
 def test_sys001_end_to_end():
     assert USERNAME, "SHOP_ADMIN_USERNAME is missing from .env"
     assert PASSWORD, "SHOP_ADMIN_PASSWORD is missing from .env"
 
-    driver = webdriver.Chrome()
+    driver = _create_chrome_driver()
     customer_driver = None
 
     try:
@@ -172,7 +179,7 @@ def test_sys001_end_to_end():
         # ==========================================
 
         # 11. Open independent Guest browser
-        customer_driver = webdriver.Chrome()
+        customer_driver = _create_chrome_driver()
         customer_wait = WebDriverWait(customer_driver, 60)
 
         customer_driver.get(SHOP_URL)
@@ -402,6 +409,12 @@ def test_sys001_end_to_end():
         # ==========================================
 
         # 22. Open Checkout before placing the order
+        # Record latest order ID in Staff Admin before entering Checkout
+        driver.get(ADMIN_URL + "admin.php?page=wc-orders")
+        wait.until(EC.visibility_of_element_located((By.ID, "orders-search-input-search-input")))
+        order_links_before = driver.find_elements(By.CSS_SELECTOR, "a.order-view")
+        top_order_before = order_links_before[0].text.strip() if order_links_before else "none"
+
         checkout_button = customer_wait.until(
             EC.element_to_be_clickable(
                 (By.CSS_SELECTOR,
@@ -423,9 +436,28 @@ def test_sys001_end_to_end():
         customer_wait.until(
             EC.url_contains("/cart/")
         )
+        assert "order-received" not in customer_driver.current_url, (
+            "Browser Back unexpectedly navigated to order-received."
+        )
+
+        # Verify in Staff Admin that Browser Back did not create an unintended order
+        driver.get(ADMIN_URL + "admin.php?page=wc-orders")
+        wait.until(EC.visibility_of_element_located((By.ID, "orders-search-input-search-input")))
+        order_links_after = driver.find_elements(By.CSS_SELECTOR, "a.order-view")
+        top_order_after = order_links_after[0].text.strip() if order_links_after else "none"
+        if top_order_after != top_order_before and order_links_after:
+            # If another group created an order concurrently, verify it does not contain our product
+            order_links_after[0].click()
+            wait.until(EC.visibility_of_element_located((By.ID, "post-body")))
+            assert product_name not in driver.find_element(By.ID, "post-body").text, (
+                f"Unintended order {top_order_after} was created for {product_name} during Browser Back!"
+            )
+        print(f"Verified no unintended order created during Browser Back (top order before={top_order_before}, after={top_order_after}).")
 
         # Browser Back can restore the Cart page before WooCommerce
-        # finishes rehydrating its cart blocks. Wait for the item first.
+        # finishes rehydrating its cart blocks. Distinguish direct Back
+        # persistence from reload recovery.
+        back_recovery_mode = "native_back"
         try:
             WebDriverWait(customer_driver, 15).until(
                 EC.text_to_be_present_in_element(
@@ -436,6 +468,7 @@ def test_sys001_end_to_end():
         except TimeoutException:
             # Retry one normal page load to let WooCommerce fetch the
             # current server-side cart session. Do not add the product again.
+            back_recovery_mode = "reload_recovery"
             print(
                 "Cart item not visible immediately after Back; "
                 "refreshing Cart once to re-check the existing session."
@@ -458,11 +491,24 @@ def test_sys001_end_to_end():
         assert product_name in cart_body, (
             "Cart did not retain the product after Browser Back."
         )
-        assert "398.00" in cart_body, (
-            "Cart total was not ฿398 after Browser Back."
+        cart_qty_after_back = customer_wait.until(
+            EC.visibility_of_element_located(
+                (By.CSS_SELECTOR, "input.wc-block-components-quantity-selector__input")
+            )
+        ).get_attribute("value")
+        assert cart_qty_after_back == "2", (
+            f"Expected cart quantity 2 after Browser Back, got {cart_qty_after_back!r}"
+        )
+        cart_total_after_back = customer_wait.until(
+            EC.visibility_of_element_located(
+                (By.CSS_SELECTOR, ".wc-block-components-totals-footer-item-tax-value")
+            )
+        ).text.strip()
+        assert cart_total_after_back == "฿398.00", (
+            f"Expected cart total ฿398.00 after Browser Back, got {cart_total_after_back!r}"
         )
 
-        print("Step 10 PASS: Existing cart restored after Browser Back!")
+        print(f"Step 10 PASS ({back_recovery_mode}): Existing cart qty 2 and ฿398.00 restored after Browser Back!")
 
         # ==========================================
         # CUSTOMER SIDE: GUEST CHECKOUT

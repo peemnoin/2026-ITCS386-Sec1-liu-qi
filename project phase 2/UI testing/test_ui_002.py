@@ -28,12 +28,19 @@ PASSWORD = os.getenv("SHOP_ADMIN_PASSWORD")
 # applies the valid coupon, checks the discount,
 # and completes COD checkout.
 
+def _create_chrome_driver():
+    """Create a Chrome WebDriver with HTTPS-Upgrade disabled for the plain-HTTP SUT."""
+    options = webdriver.ChromeOptions()
+    options.add_argument("--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable")
+    return webdriver.Chrome(options=options)
+
+
 def test_sys002_end_to_end():
 
     assert USERNAME, "SHOP_ADMIN_USERNAME is missing from .env"
     assert PASSWORD, "SHOP_ADMIN_PASSWORD is missing from .env"
 
-    driver = webdriver.Chrome()
+    driver = _create_chrome_driver()
     customer_driver = None
 
     try:
@@ -265,18 +272,29 @@ def test_sys002_end_to_end():
             )
         )
 
-        coupon_publish.click()
+        try:
+            coupon_publish.click()
+        except Exception:
+            driver.execute_script("arguments[0].click();", coupon_publish)
 
-        # Wait up to 60 seconds for WooCommerce
-        # to confirm that the coupon was saved.
-        
-                # Wait until WordPress finishes publishing the coupon
-        wait.until(
-            lambda d: (
-                "post.php" in d.current_url
-                and "post-new.php" not in d.current_url
+        # Wait up to 60 seconds for WooCommerce to confirm that the coupon was saved.
+        # If the first click was swallowed by WordPress admin bar / JS init, retry via JS click once.
+        try:
+            WebDriverWait(driver, 20).until(
+                lambda d: (
+                    "post.php" in d.current_url
+                    and "post-new.php" not in d.current_url
+                )
             )
-        )
+        except Exception:
+            coupon_publish = driver.find_element(By.ID, "publish")
+            driver.execute_script("arguments[0].click();", coupon_publish)
+            wait.until(
+                lambda d: (
+                    "post.php" in d.current_url
+                    and "post-new.php" not in d.current_url
+                )
+            )
 
         # Verify the saved coupon code
         saved_coupon = wait.until(
@@ -304,11 +322,22 @@ def test_sys002_end_to_end():
         print("Coupon discount: 10%")
         print("Coupon published successfully!")
 
+        # Record baseline usage count for the newly created coupon (SYS-002 Step 12 baseline)
+        driver.get(ADMIN_URL + f"edit.php?post_type=shop_coupon&s={coupon_code}")
+        baseline_usage_cell = wait.until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "td.usage"))
+        ).text.strip()
+        initial_coupon_usage = int(baseline_usage_cell.split("/")[0].strip())
+        assert initial_coupon_usage == 0, (
+            f"Expected initial coupon usage 0 for {coupon_code}, got {baseline_usage_cell!r}"
+        )
+        print(f"Baseline coupon usage verified: {baseline_usage_cell}")
+
         # ==========================================
         # CUSTOMER SIDE: OPEN GUEST STOREFRONT
         # ==========================================
 
-        customer_driver = webdriver.Chrome()
+        customer_driver = _create_chrome_driver()
 
         # Same long wait strategy used successfully in SYS-001
         customer_wait = WebDriverWait(
@@ -408,6 +437,7 @@ def test_sys002_end_to_end():
         ).text
 
         assert product_name in product_body
+        product_url = customer_driver.current_url
 
         print("Product Detail verified!")
 
@@ -603,6 +633,92 @@ def test_sys002_end_to_end():
         print("Valid coupon applied successfully!")
         print("Discount: -฿40.00")
         print("Final total: ฿360.00")
+
+        # ==========================================
+        # CUSTOMER SIDE: REMOVE COUPON (SYS-002 STEP 6)
+        # ==========================================
+        remove_coupon_btn = customer_wait.until(
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "button.wc-block-components-chip__remove")
+            )
+        )
+        remove_coupon_btn.click()
+
+        customer_wait.until(
+            EC.text_to_be_present_in_element(
+                (By.CSS_SELECTOR, ".wc-block-components-totals-footer-item-tax-value"),
+                "400.00"
+            )
+        )
+        cart_after_remove = customer_driver.find_element(By.TAG_NAME, "body").text
+        assert coupon_code.lower() not in cart_after_remove.lower(), (
+            "Coupon code still visible after removal."
+        )
+        assert "40.00" not in cart_after_remove, (
+            "Discount 40.00 still visible after coupon removal."
+        )
+        assert "400.00" in cart_after_remove
+        print("Step 6 PASS: Coupon removed; total returned to ฿400.00!")
+
+        # ==========================================
+        # CUSTOMER SIDE: REAPPLY VALID COUPON (SYS-002 STEP 7)
+        # ==========================================
+        reapply_input = customer_wait.until(
+            EC.element_to_be_clickable(
+                (By.ID, "wc-block-components-totals-coupon__input-coupon")
+            )
+        )
+        reapply_input.click()
+        reapply_input.send_keys(Keys.CONTROL, "a")
+        reapply_input.send_keys(Keys.BACKSPACE)
+        reapply_input.send_keys(coupon_code)
+
+        coupon_form = customer_driver.find_element(
+            By.ID, "wc-block-components-totals-coupon__form"
+        )
+        coupon_form.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+
+        customer_wait.until(
+            EC.text_to_be_present_in_element(
+                (By.CSS_SELECTOR, ".wc-block-components-totals-footer-item-tax-value"),
+                "360.00"
+            )
+        )
+        cart_after_reapply = customer_driver.find_element(By.TAG_NAME, "body").text
+        assert coupon_code.lower() in cart_after_reapply.lower()
+        assert "40.00" in cart_after_reapply
+        assert "360.00" in cart_after_reapply
+        print("Step 7 PASS: Valid coupon reapplied; single ฿40.00 discount, total ฿360.00!")
+
+        # ==========================================
+        # CUSTOMER SIDE: NAVIGATE AWAY AND BACK (SYS-002 STEP 8)
+        # ==========================================
+        customer_driver.get(product_url)
+        customer_wait.until(
+            EC.visibility_of_element_located((By.NAME, "quantity"))
+        )
+        customer_driver.get(SHOP_URL + "cart/")
+        customer_wait.until(
+            EC.text_to_be_present_in_element((By.TAG_NAME, "body"), product_name)
+        )
+        customer_wait.until(
+            EC.text_to_be_present_in_element(
+                (By.CSS_SELECTOR, ".wc-block-components-totals-footer-item-tax-value"),
+                "360.00"
+            )
+        )
+        cart_after_nav = customer_driver.find_element(By.TAG_NAME, "body").text
+        nav_qty = customer_wait.until(
+            EC.visibility_of_element_located(
+                (By.CSS_SELECTOR, "input.wc-block-components-quantity-selector__input")
+            )
+        ).get_attribute("value")
+        assert nav_qty == "2", f"Expected qty 2 after navigate away/back, got {nav_qty!r}"
+        assert product_name in cart_after_nav
+        assert coupon_code.lower() in cart_after_nav.lower()
+        assert "40.00" in cart_after_nav
+        assert "360.00" in cart_after_nav
+        print("Step 8 PASS: Product x2, coupon, and ฿360.00 preserved after navigate away/back!")
 
         # ==========================================
         # CUSTOMER SIDE: CHECKOUT
@@ -873,6 +989,20 @@ def test_sys002_end_to_end():
         print("Discount: -฿40.00")
         print("Total: ฿360.00")
         print("Status:", status)
+
+        # ==========================================
+        # STAFF SIDE: VERIFY COUPON USAGE COUNT (SYS-002 STEP 12)
+        # ==========================================
+        driver.get(ADMIN_URL + f"edit.php?post_type=shop_coupon&s={coupon_code}")
+        post_usage_cell = wait.until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "td.usage"))
+        ).text.strip()
+        post_coupon_usage = int(post_usage_cell.split("/")[0].strip())
+        assert post_coupon_usage == initial_coupon_usage + 1, (
+            f"Expected coupon usage {initial_coupon_usage + 1} after order #{order_number}, "
+            f"got {post_usage_cell!r}"
+        )
+        print(f"Step 12 PASS: Coupon {coupon_code} usage incremented {initial_coupon_usage} -> {post_coupon_usage}!")
 
     finally:
         if customer_driver:

@@ -70,7 +70,7 @@ The tests use separate browser sessions for staff and guest customer activities.
 **Observed limitation:** The guest storefront did not display a visible Search Bar during the test. Product discovery was completed using pagination instead. Search availability was not considered verified.
 
 **Final execution result:** PASS  
-**Recorded execution time:** 54.99 seconds
+**Recorded execution time:** 73.43 seconds (terminal screenshot `evidence/ui001/Screenshot 2026-11-14 003703.png`, Order `#449`; an earlier run recorded 54.99 seconds)
 
 **Development issue:** The missing visible Search Bar was handled by using product listing pagination to locate the product. This is an observed storefront limitation, not a successful search test.
 
@@ -115,7 +115,7 @@ The tests use separate browser sessions for staff and guest customer activities.
 | 14 | Staff | Verify product, coupon, discount, and total | Order details match |
 
 **Final execution result:** PASS  
-**Recorded execution time:** 51.89 seconds
+**Recorded execution time:** 61.41 seconds (terminal screenshot `evidence/ui002/Screenshot 2026-11-14 003944.png`, Order `#452`; an earlier run recorded 51.89 seconds)
 
 **Development issues:** Product publishing timeouts and stale element errors occurred during early executions. Explicit waits and re-finding dynamic page elements were used to address these automation issues. The final recorded end-to-end execution passed.
 
@@ -157,7 +157,7 @@ The tests use separate browser sessions for staff and guest customer activities.
 | 11 | Customer (Guest) | Return to the product and add quantity 2 again | Subtotal THB 300 |
 | 12 | Customer (Guest) | Check My Account registration availability | Login only; registration unavailable |
 | 13 | Customer (Guest) | Complete checkout using COD | Checkout successful |
-| 14 | Customer (Guest) | Place the order | Order #446 created |
+| 14 | Customer (Guest) | Place the order | Order created (Order `#454` in `2026-11-14` screenshot; `#446` in earlier run) |
 | 15 | Staff | Search for and verify the new order | Quantity 2; total THB 300 |
 | 16 | Staff | Verify order status | Processing |
 | 17 | Staff | Reopen product inventory | Remaining stock = 1 |
@@ -171,12 +171,12 @@ The tests use separate browser sessions for staff and guest customer activities.
 - Product removal and empty cart verification passed.
 - The product was successfully added again with quantity 2.
 - The My Account page displayed login only, without a registration form. Conditional registration-related steps were recorded as Not Applicable (N/A).
-- Order #446 was created successfully with quantity 2 and total THB 300.
+- Order `#454` (`2026-11-14` terminal screenshot; `#446` in earlier run) was created successfully with quantity 2 and total THB 300.
 - Order status was Processing.
 - Remaining stock was 1 after checkout.
 
 **Final execution result:** PASS  
-**Recorded execution time:** 58.88 seconds
+**Recorded execution time:** 62.21 seconds (terminal screenshot `evidence/ui003/Screenshot 2026-11-14 004015.png`; an earlier run recorded 58.88 seconds)
 
 **Development issue:** During an early execution, the WordPress Admin Bar intercepted a click on the product category tab. Scrolling and element interaction were adjusted. The final recorded end-to-end execution passed.
 
@@ -184,13 +184,29 @@ The tests use separate browser sessions for staff and guest customer activities.
 
 The following table summarizes the final recorded end-to-end test executions.
 
-| Test ID | Scenario | Execution time | Result |
+| Test ID | Scenario | Execution time (2026-11-14 evidence) | Result |
 |---|---|---:|---|
-| UI-001 | Product Discovery, Purchase and Order Management | 54.99 seconds | PASS |
-| UI-002 | Coupon Validation and Discount | 51.89 seconds | PASS |
-| UI-003 | Inventory Limits, Cart Changes and Guest Checkout | 58.88 seconds | PASS |
+| UI-001 | Product Discovery, Purchase and Order Management | 73.43 seconds (Order `#449`) | PASS |
+| UI-002 | Coupon Validation and Discount | 61.41 seconds (Order `#452`) | PASS |
+| UI-003 | Inventory Limits, Cart Changes and Guest Checkout | 62.21 seconds (Order `#454`) | PASS |
 
-All three final recorded automated UI test executions completed successfully. These results refer to the recorded runs; they do not claim that the tests have been repeatedly executed across multiple runs.
+All three earlier end-to-end executions (2026-11-14) completed successfully. Following the 2026-11-18 audit, assertions in `test_ui_001.py`, `test_ui_002.py`, and `test_ui_003.py` were strengthened, and `--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable` was added for Chrome 157's automatic HTTPS upgrade. On **2026-11-18 17:06–17:08 (Run 1)** (`evidence/repeatability/run1/console.txt`, `results.xml`), `UI-001` (Order `#889`, Completed) and `UI-003` (Order `#893`, post-checkout stock `1`) **PASSED**, while `UI-002` **FAILED** with a `TimeoutException` after clicking `#publish` on coupon creation (product `G01_UI002_20261118_170656_Tee` created; no coupon or order created). `test_ui_002.py` was updated with a JS-click retry for `#publish`; **two consecutive passing runs of the updated code remain `NOT VERIFIED`** pending re-execution authorization.
+
+### 4.1 Manual-to-Automated Parity Mapping
+
+| Manual Case & Steps | Automated Script | Disposition | Parity & Assertion Notes |
+|---|---|---|---|
+| `SYS-001` Steps 1–3, 5–9, 11–14, 16 | `test_ui_001.py` | **Implemented** | Staff create (`199`, stock `10`, `Accessories`), category/sort, qty `2` (`฿398.00`), COD order, `Processing -> Completed`, final list check. |
+| `SYS-001` Step 4 (Search) | `test_ui_001.py` | **Conditional / Fallback** | Checks for visible Search Bar, logs `Step 4 FAIL: Guest storefront has no visible Search Bar`, falls back to pagination. |
+| `SYS-001` Step 10 (Checkout → Back) | `test_ui_001.py` | **Implemented** | Navigates Checkout → Back, distinguishes `native_back` vs `reload_recovery`, asserts URL `/cart/` (not `order-received`), qty `2`, `฿398.00`. |
+| `SYS-001` Step 15 (Guest My Account) | `test_ui_001.py` | **N/A** | Guest My Account requires login; order verified via confirmation + Staff Admin. |
+| `SYS-002` Steps 1–5, 9–11, 13 | `test_ui_002.py` | **Implemented** | Staff creates `G01` product (`200`) & `G01` 10% coupon, tests invalid + valid coupon (`400 -> 360`), COD checkout, Staff order check. *(Uses `Accessories` vs manual `Clothing/Tshirts`.)* |
+| `SYS-002` Steps 6–8 (Remove, Reapply, Navigate) | `test_ui_002.py` | **Implemented (2026-11-18)** | Added coupon removal (`400.00`, discount absent), reapplication (`40.00`, `360.00`), and product-page navigate away/back persistence. |
+| `SYS-002` Step 12 (Coupon Usage Count) | `test_ui_002.py` | **Implemented (2026-11-18)** | Records baseline usage (`0`) and asserts `post_coupon_usage == initial_coupon_usage + 1` in `wp-admin`. |
+| `SYS-003` Steps 1, 3–8, 12–13, 15 | `test_ui_003.py` | **Implemented** | Managed stock `3`, qty `0` & `4` `checkValidity()`, cart update/remove/re-add, COD checkout, Staff order check (`Processing`, qty `2`, `300.00`). |
+| `SYS-003` Step 2 (Search) | `test_ui_003.py` | **Pagination Fallback** | Locates product via shop pagination. |
+| `SYS-003` Steps 9–11, 14, 17 (Registration) | `test_ui_003.py` | **Conditional / N/A** | Verifies My Account is login-only; treats registration steps as `N/A`. |
+| `SYS-003` Step 16 (Post-checkout Stock) | `test_ui_003.py` | **Implemented (2026-11-18)** | Hard `assert post_order_stock == "1"` after bounded refresh. |
 
 Each end-to-end test creates new test data using a unique timestamp to avoid reusing previously created products, coupons, or orders.
 
@@ -272,19 +288,27 @@ Screen recordings and terminal screenshots should be saved for each full end-to-
 
 ```text
 UI testing/
+├── .env.example
 ├── README.md
+├── requirements.txt
+├── test_browser.py          # initial browser smoke-test script (not part of UI-001..003)
 ├── test_ui_001.py
 ├── test_ui_002.py
 ├── test_ui_003.py
 └── evidence/
-    ├── UI-001/
-    │   ├── recording.mp4
-    │   └── terminal_result.png
-    ├── UI-002/
-    │   ├── recording.mp4
-    │   └── terminal_result.png
-    └── UI-003/
-        ├── recording.mp4
-        └── terminal_result.png
+    ├── ui001/
+    │   ├── Screenshot 2026-11-14 003613.png
+    │   ├── Screenshot 2026-11-14 003632.png
+    │   ├── Screenshot 2026-11-14 003649.png
+    │   └── Screenshot 2026-11-14 003703.png
+    ├── ui002/
+    │   ├── Screenshot 2026-11-14 003859.png
+    │   ├── Screenshot 2026-11-14 003916.png
+    │   ├── Screenshot 2026-11-14 003926.png
+    │   └── Screenshot 2026-11-14 003944.png
+    └── ui003/
+        ├── Screenshot 2026-11-14 003959.png
+        └── Screenshot 2026-11-14 004015.png
 ```
+Screen recordings (`.mp4`) are hosted externally on Google Drive due to file size:
 https://drive.google.com/drive/folders/1y-bGTgWzoUtVq6qrdx0ZjnHi729Br4-9?usp=sharing

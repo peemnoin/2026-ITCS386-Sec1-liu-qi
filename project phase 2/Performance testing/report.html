@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITCS386 Project 2 — K6 Performance Testing Report (Group 01)</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #263348;
+    --border: #334155;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+  header {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
+    border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; gap: 12px;
+  }
+  h1 { margin: 0; font-size: 1.65rem; }
+  .subtitle { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tab-btn {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    padding: 9px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+  }
+  .tab-btn.active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
+  }
+  .pass { background: rgba(34,197,94,.18); color: #4ade80; border: 1px solid rgba(34,197,94,.35); }
+  .fail { background: rgba(239,68,68,.18); color: #f87171; border: 1px solid rgba(239,68,68,.35); }
+  .warn { background: rgba(245,158,11,.18); color: #fbbf24; border: 1px solid rgba(245,158,11,.35); }
+  .info { background: rgba(56,189,248,.16); color: #7dd3fc; border: 1px solid rgba(56,189,248,.35); }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 22px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 0.87rem; }
+  .kv span.k { color: var(--muted); }
+  .kv span.v { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .section { margin-bottom: 26px; }
+  .section h2 { font-size: 1.2rem; margin: 0 0 12px; border-left: 4px solid var(--accent); padding-left: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; background: var(--card); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 9px 11px; border-bottom: 1px solid var(--border); text-align: left; font-variant-numeric: tabular-nums; }
+  th { background: var(--card2); color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; }
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr)); gap: 18px; }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .chart-title { font-weight: 700; margin-bottom: 4px; font-size: 0.98rem; }
+  .chart-meta { color: var(--muted); font-size: 0.8rem; margin-bottom: 10px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+  .note { background: var(--card2); border-left: 3px solid var(--amber); padding: 10px 14px; border-radius: 6px; font-size: 0.86rem; color: #e2e8f0; margin-bottom: 16px; }
+  .hidden { display: none; }
+  svg { width: 100%; height: auto; display: block; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>ITCS386 Project 2 — K6 Performance Testing Dashboard</h1>
+      <div class="subtitle">Group 01 (WooCommerce Shop) · Offline Self-Contained Report · Generated from <code>Performance testing/results/</code></div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('nov18', this)">Latest Completed Runs (18 Nov 2026)</button>
+      <button class="tab-btn" onclick="showTab('nov16', this)">Baseline Runs (16 Nov 2026 + VU05–15)</button>
+      <button class="tab-btn" onclick="showTab('inv', this)">Full File &amp; Completion Inventory</button>
+    </div>
+  </header>
+
+  <div id="tab-nov18">
+    <div class="note">
+      <strong>Scope &amp; Provenance:</strong> Showing the <strong>latest completed run</strong> for each of the four required test types (<strong>18 November 2026</strong>, 17:35–19:01 +07:00). November 16 baseline runs are kept in a separate tab and never mixed with November 18 metrics. No time-series data is fabricated where CSV output was not saved.
+    </div>
+    <div class="grid-4" id="cards-nov18"></div>
+    <div class="section">
+      <h2>Aggregate Metrics &amp; Threshold Outcomes (18 Nov 2026)</h2>
+      <div id="table-nov18"></div>
+    </div>
+    <div class="section">
+      <h2>Time-Series Charts (from Saved CSVs — 18 Nov 2026)</h2>
+      <div class="chart-grid" id="charts-nov18"></div>
+    </div>
+  </div>
+
+  <div id="tab-nov16" class="hidden">
+    <div class="note">
+      <strong>Historical Baseline (16 November 2026):</strong> Separate runs from 16 Nov 2026 (20:58–00:33 +07:00), including the 5 constant-load checks (5, 10, 12, 13, 15 VUs) used to pinpoint the 1-second p(95) capacity threshold.
+    </div>
+    <div class="grid-4" id="cards-nov16"></div>
+    <div class="section">
+      <h2>Aggregate Metrics &amp; Constant-Load Capacity Sweep (16 Nov 2026)</h2>
+      <div id="table-nov16"></div>
+    </div>
+    <div class="section">
+      <h2>Time-Series &amp; Constant-Load Charts (16 Nov 2026)</h2>
+      <div class="chart-grid" id="charts-nov16"></div>
+    </div>
+  </div>
+
+  <div id="tab-inv" class="hidden">
+    <div class="section">
+      <h2>Complete Results Inventory (All 13 Completed Runs)</h2>
+      <div id="table-inv"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const RUNS = {"avg_load_20261116_2058": {"stem": "avg_load_20261116_2058", "files": ["avg_load_20261116_2058.json", "avg_load_20261116_2058.txt"], "has_csv": false, "completed": true, "duration_str": "7m06.3s", "last_running": "running (7m06.3s), 00/20 VUs, 661 complete and 0 interrupted iterations", "vus_max": 20, "iterations": 661, "reqs_count": 1983, "reqs_rate": 4.65, "fail_count": 0, "fail_total": 1983, "fail_pct": 0, "checks_pass": 1983, "checks_total": 1983, "dur_min": 219.6, "dur_med": 1629.9, "dur_avg": 1707.7, "dur_p90": 2973.8, "dur_p95": 3381.0, "dur_max": 5021.3, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": null, "series": null}, "avg_load_20261118_1735": {"stem": "avg_load_20261118_1735", "files": ["avg_load_20261118_1735.json", "avg_load_20261118_1735.txt"], "has_csv": false, "completed": true, "duration_str": "7m03.6s", "last_running": "running (7m03.6s), 00/20 VUs, 714 complete and 0 interrupted iterations", "vus_max": 20, "iterations": 714, "reqs_count": 2142, "reqs_rate": 5.06, "fail_count": 0, "fail_total": 2142, "fail_pct": 0, "checks_pass": 2142, "checks_total": 2142, "dur_min": 206.0, "dur_med": 1359.2, "dur_avg": 1403.4, "dur_p90": 2518.7, "dur_p95": 2847.8, "dur_max": 4342.4, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": null, "series": null}, "soak_20261116_2333": {"stem": "soak_20261116_2333", "files": ["soak_20261116_2333.json", "soak_20261116_2333.txt", "soak_20261116_2333.csv"], "has_csv": true, "completed": true, "duration_str": "1h00m05.6s", "last_running": "running (1h00m05.6s), 00/10 VUs, 4898 complete and 0 interrupted iterations", "vus_max": 10, "iterations": 4898, "reqs_count": 14694, "reqs_rate": 4.08, "fail_count": 0, "fail_total": 14694, "fail_pct": 0, "checks_pass": 14694, "checks_total": 14694, "dur_min": 195.0, "dur_med": 327.9, "dur_avg": 371.8, "dur_p90": 567.3, "dur_p95": 659.5, "dur_max": 1441.4, "dur_rule": "p(95)<1000", "dur_passed": true, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": {"start": "2026-11-16 23:33:33 +07:00", "end": "2026-11-17 00:33:38 +07:00", "span_s": 3605, "bucket_sec": 60}, "series": [{"t": 0, "label": "0s", "p95": 419.1, "med": 290.2, "vus": 5, "fails": 0, "reqs": 70}, {"t": 60, "label": "60s", "p95": 515.6, "med": 339.5, "vus": 9, "fails": 0, "reqs": 187}, {"t": 120, "label": "120s", "p95": 733.6, "med": 346.2, "vus": 10, "fails": 0, "reqs": 245}, {"t": 180, "label": "180s", "p95": 639.5, "med": 336.8, "vus": 10, "fails": 0, "reqs": 256}, {"t": 240, "label": "240s", "p95": 643.6, "med": 337.8, "vus": 10, "fails": 0, "reqs": 250}, {"t": 300, "label": "300s", "p95": 699.5, "med": 345.8, "vus": 10, "fails": 0, "reqs": 246}, {"t": 360, "label": "360s", "p95": 741.9, "med": 339.9, "vus": 10, "fails": 0, "reqs": 250}, {"t": 420, "label": "420s", "p95": 518.2, "med": 318.0, "vus": 10, "fails": 0, "reqs": 252}, {"t": 480, "label": "480s", "p95": 582.8, "med": 300.9, "vus": 10, "fails": 0, "reqs": 248}, {"t": 540, "label": "540s", "p95": 670.2, "med": 338.3, "vus": 10, "fails": 0, "reqs": 247}, {"t": 600, "label": "600s", "p95": 626.9, "med": 339.6, "vus": 10, "fails": 0, "reqs": 247}, {"t": 660, "label": "660s", "p95": 645.3, "med": 348.1, "vus": 10, "fails": 0, "reqs": 244}, {"t": 720, "label": "720s", "p95": 672.9, "med": 343.8, "vus": 10, "fails": 0, "reqs": 252}, {"t": 780, "label": "780s", "p95": 654.3, "med": 309.1, "vus": 10, "fails": 0, "reqs": 251}, {"t": 840, "label": "840s", "p95": 662.0, "med": 335.0, "vus": 10, "fails": 0, "reqs": 258}, {"t": 900, "label": "900s", "p95": 798.6, "med": 341.8, "vus": 10, "fails": 0, "reqs": 246}, {"t": 960, "label": "960s", "p95": 858.8, "med": 343.0, "vus": 10, "fails": 0, "reqs": 257}, {"t": 1020, "label": "1020s", "p95": 635.7, "med": 348.3, "vus": 10, "fails": 0, "reqs": 252}, {"t": 1080, "label": "1080s", "p95": 689.7, "med": 352.1, "vus": 10, "fails": 0, "reqs": 256}, {"t": 1140, "label": "1140s", "p95": 643.4, "med": 338.6, "vus": 10, "fails": 0, "reqs": 246}, {"t": 1200, "label": "1200s", "p95": 608.4, "med": 323.7, "vus": 10, "fails": 0, "reqs": 252}, {"t": 1260, "label": "1260s", "p95": 592.7, "med": 307.3, "vus": 10, "fails": 0, "reqs": 255}, {"t": 1320, "label": "1320s", "p95": 760.3, "med": 345.4, "vus": 10, "fails": 0, "reqs": 249}, {"t": 1380, "label": "1380s", "p95": 714.1, "med": 333.7, "vus": 10, "fails": 0, "reqs": 254}, {"t": 1440, "label": "1440s", "p95": 700.6, "med": 324.3, "vus": 10, "fails": 0, "reqs": 259}, {"t": 1500, "label": "1500s", "p95": 631.0, "med": 345.5, "vus": 10, "fails": 0, "reqs": 249}, {"t": 1560, "label": "1560s", "p95": 604.4, "med": 331.9, "vus": 10, "fails": 0, "reqs": 263}, {"t": 1620, "label": "1620s", "p95": 736.3, "med": 338.7, "vus": 10, "fails": 0, "reqs": 254}, {"t": 1680, "label": "1680s", "p95": 536.8, "med": 321.9, "vus": 10, "fails": 0, "reqs": 249}, {"t": 1740, "label": "1740s", "p95": 652.3, "med": 365.7, "vus": 10, "fails": 0, "reqs": 253}, {"t": 1800, "label": "1800s", "p95": 637.7, "med": 334.7, "vus": 10, "fails": 0, "reqs": 253}, {"t": 1860, "label": "1860s", "p95": 543.1, "med": 315.6, "vus": 10, "fails": 0, "reqs": 248}, {"t": 1920, "label": "1920s", "p95": 638.3, "med": 323.8, "vus": 10, "fails": 0, "reqs": 254}, {"t": 1980, "label": "1980s", "p95": 636.8, "med": 301.9, "vus": 10, "fails": 0, "reqs": 261}, {"t": 2040, "label": "2040s", "p95": 595.6, "med": 314.1, "vus": 10, "fails": 0, "reqs": 253}, {"t": 2100, "label": "2100s", "p95": 564.6, "med": 312.7, "vus": 10, "fails": 0, "reqs": 249}, {"t": 2160, "label": "2160s", "p95": 656.7, "med": 319.9, "vus": 10, "fails": 0, "reqs": 249}, {"t": 2220, "label": "2220s", "p95": 723.9, "med": 311.8, "vus": 10, "fails": 0, "reqs": 254}, {"t": 2280, "label": "2280s", "p95": 526.4, "med": 294.9, "vus": 10, "fails": 0, "reqs": 258}, {"t": 2340, "label": "2340s", "p95": 585.3, "med": 306.8, "vus": 10, "fails": 0, "reqs": 256}, {"t": 2400, "label": "2400s", "p95": 702.0, "med": 317.5, "vus": 10, "fails": 0, "reqs": 256}, {"t": 2460, "label": "2460s", "p95": 611.3, "med": 314.1, "vus": 10, "fails": 0, "reqs": 258}, {"t": 2520, "label": "2520s", "p95": 708.2, "med": 307.0, "vus": 10, "fails": 0, "reqs": 256}, {"t": 2580, "label": "2580s", "p95": 584.9, "med": 335.0, "vus": 10, "fails": 0, "reqs": 256}, {"t": 2640, "label": "2640s", "p95": 588.0, "med": 324.7, "vus": 10, "fails": 0, "reqs": 259}, {"t": 2700, "label": "2700s", "p95": 548.1, "med": 322.3, "vus": 10, "fails": 0, "reqs": 254}, {"t": 2760, "label": "2760s", "p95": 570.3, "med": 306.4, "vus": 10, "fails": 0, "reqs": 253}, {"t": 2820, "label": "2820s", "p95": 781.5, "med": 351.1, "vus": 10, "fails": 0, "reqs": 256}, {"t": 2880, "label": "2880s", "p95": 794.6, "med": 408.8, "vus": 10, "fails": 0, "reqs": 252}, {"t": 2940, "label": "2940s", "p95": 882.0, "med": 377.2, "vus": 10, "fails": 0, "reqs": 240}, {"t": 3000, "label": "3000s", "p95": 614.0, "med": 340.8, "vus": 10, "fails": 0, "reqs": 258}, {"t": 3060, "label": "3060s", "p95": 717.0, "med": 318.1, "vus": 10, "fails": 0, "reqs": 250}, {"t": 3120, "label": "3120s", "p95": 598.1, "med": 322.8, "vus": 10, "fails": 0, "reqs": 251}, {"t": 3180, "label": "3180s", "p95": 608.2, "med": 349.7, "vus": 10, "fails": 0, "reqs": 249}, {"t": 3240, "label": "3240s", "p95": 603.0, "med": 332.0, "vus": 10, "fails": 0, "reqs": 250}, {"t": 3300, "label": "3300s", "p95": 631.4, "med": 319.6, "vus": 10, "fails": 0, "reqs": 260}, {"t": 3360, "label": "3360s", "p95": 704.5, "med": 305.8, "vus": 10, "fails": 0, "reqs": 255}, {"t": 3420, "label": "3420s", "p95": 736.8, "med": 347.6, "vus": 10, "fails": 0, "reqs": 245}, {"t": 3480, "label": "3480s", "p95": 506.9, "med": 299.1, "vus": 10, "fails": 0, "reqs": 211}, {"t": 3540, "label": "3540s", "p95": 378.5, "med": 279.1, "vus": 6, "fails": 0, "reqs": 91}, {"t": 3600, "label": "3600s", "p95": 265.0, "med": 314.1, "vus": 1, "fails": 0, "reqs": 2}]}, "soak_20261118_1735": {"stem": "soak_20261118_1735", "files": ["soak_20261118_1735.json", "soak_20261118_1735.txt", "soak_20261118_1735.csv"], "has_csv": true, "completed": true, "duration_str": "1h00m03.2s", "last_running": "running (1h00m03.2s), 00/10 VUs, 4893 complete and 0 interrupted iterations", "vus_max": 10, "iterations": 4893, "reqs_count": 14679, "reqs_rate": 4.07, "fail_count": 0, "fail_total": 14679, "fail_pct": 0, "checks_pass": 14679, "checks_total": 14679, "dur_min": 194.9, "dur_med": 327.8, "dur_avg": 379.0, "dur_p90": 596.1, "dur_p95": 692.9, "dur_max": 1311.0, "dur_rule": "p(95)<1000", "dur_passed": true, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": {"start": "2026-11-18 18:01:20 +07:00", "end": "2026-11-18 19:01:23 +07:00", "span_s": 3603, "bucket_sec": 60}, "series": [{"t": 0, "label": "0s", "p95": 393.7, "med": 298.9, "vus": 5, "fails": 0, "reqs": 72}, {"t": 60, "label": "60s", "p95": 434.0, "med": 310.2, "vus": 9, "fails": 0, "reqs": 188}, {"t": 120, "label": "120s", "p95": 601.2, "med": 338.7, "vus": 10, "fails": 0, "reqs": 257}, {"t": 180, "label": "180s", "p95": 813.5, "med": 321.0, "vus": 10, "fails": 0, "reqs": 254}, {"t": 240, "label": "240s", "p95": 672.2, "med": 325.0, "vus": 10, "fails": 0, "reqs": 255}, {"t": 300, "label": "300s", "p95": 577.0, "med": 315.5, "vus": 10, "fails": 0, "reqs": 248}, {"t": 360, "label": "360s", "p95": 672.3, "med": 345.4, "vus": 10, "fails": 0, "reqs": 247}, {"t": 420, "label": "420s", "p95": 581.3, "med": 334.7, "vus": 10, "fails": 0, "reqs": 261}, {"t": 480, "label": "480s", "p95": 736.2, "med": 319.4, "vus": 10, "fails": 0, "reqs": 253}, {"t": 540, "label": "540s", "p95": 652.8, "med": 329.6, "vus": 10, "fails": 0, "reqs": 247}, {"t": 600, "label": "600s", "p95": 687.8, "med": 362.6, "vus": 10, "fails": 0, "reqs": 248}, {"t": 660, "label": "660s", "p95": 576.4, "med": 305.2, "vus": 10, "fails": 0, "reqs": 254}, {"t": 720, "label": "720s", "p95": 857.9, "med": 416.2, "vus": 10, "fails": 0, "reqs": 247}, {"t": 780, "label": "780s", "p95": 663.8, "med": 321.8, "vus": 10, "fails": 0, "reqs": 247}, {"t": 840, "label": "840s", "p95": 721.1, "med": 335.2, "vus": 10, "fails": 0, "reqs": 247}, {"t": 900, "label": "900s", "p95": 606.5, "med": 309.8, "vus": 10, "fails": 0, "reqs": 253}, {"t": 960, "label": "960s", "p95": 778.6, "med": 328.8, "vus": 10, "fails": 0, "reqs": 249}, {"t": 1020, "label": "1020s", "p95": 623.1, "med": 354.2, "vus": 10, "fails": 0, "reqs": 246}, {"t": 1080, "label": "1080s", "p95": 703.6, "med": 347.7, "vus": 10, "fails": 0, "reqs": 252}, {"t": 1140, "label": "1140s", "p95": 641.6, "med": 329.3, "vus": 10, "fails": 0, "reqs": 252}, {"t": 1200, "label": "1200s", "p95": 777.2, "med": 369.1, "vus": 10, "fails": 0, "reqs": 252}, {"t": 1260, "label": "1260s", "p95": 693.9, "med": 323.1, "vus": 10, "fails": 0, "reqs": 253}, {"t": 1320, "label": "1320s", "p95": 758.5, "med": 344.3, "vus": 10, "fails": 0, "reqs": 249}, {"t": 1380, "label": "1380s", "p95": 671.7, "med": 344.4, "vus": 10, "fails": 0, "reqs": 252}, {"t": 1440, "label": "1440s", "p95": 672.5, "med": 368.9, "vus": 10, "fails": 0, "reqs": 249}, {"t": 1500, "label": "1500s", "p95": 856.5, "med": 354.3, "vus": 10, "fails": 0, "reqs": 253}, {"t": 1560, "label": "1560s", "p95": 802.3, "med": 371.0, "vus": 10, "fails": 0, "reqs": 242}, {"t": 1620, "label": "1620s", "p95": 711.3, "med": 346.3, "vus": 10, "fails": 0, "reqs": 258}, {"t": 1680, "label": "1680s", "p95": 698.6, "med": 327.4, "vus": 10, "fails": 0, "reqs": 259}, {"t": 1740, "label": "1740s", "p95": 697.3, "med": 336.6, "vus": 10, "fails": 0, "reqs": 247}, {"t": 1800, "label": "1800s", "p95": 694.1, "med": 352.7, "vus": 10, "fails": 0, "reqs": 244}, {"t": 1860, "label": "1860s", "p95": 619.2, "med": 336.1, "vus": 10, "fails": 0, "reqs": 257}, {"t": 1920, "label": "1920s", "p95": 628.2, "med": 326.8, "vus": 10, "fails": 0, "reqs": 246}, {"t": 1980, "label": "1980s", "p95": 650.2, "med": 300.3, "vus": 10, "fails": 0, "reqs": 253}, {"t": 2040, "label": "2040s", "p95": 640.6, "med": 332.0, "vus": 10, "fails": 0, "reqs": 250}, {"t": 2100, "label": "2100s", "p95": 742.9, "med": 336.8, "vus": 10, "fails": 0, "reqs": 260}, {"t": 2160, "label": "2160s", "p95": 685.7, "med": 321.8, "vus": 10, "fails": 0, "reqs": 255}, {"t": 2220, "label": "2220s", "p95": 682.7, "med": 328.2, "vus": 10, "fails": 0, "reqs": 254}, {"t": 2280, "label": "2280s", "p95": 863.3, "med": 346.7, "vus": 10, "fails": 0, "reqs": 250}, {"t": 2340, "label": "2340s", "p95": 552.4, "med": 299.0, "vus": 10, "fails": 0, "reqs": 253}, {"t": 2400, "label": "2400s", "p95": 709.3, "med": 350.1, "vus": 10, "fails": 0, "reqs": 253}, {"t": 2460, "label": "2460s", "p95": 725.7, "med": 303.7, "vus": 10, "fails": 0, "reqs": 258}, {"t": 2520, "label": "2520s", "p95": 551.6, "med": 307.4, "vus": 10, "fails": 0, "reqs": 250}, {"t": 2580, "label": "2580s", "p95": 690.9, "med": 330.2, "vus": 10, "fails": 0, "reqs": 250}, {"t": 2640, "label": "2640s", "p95": 862.6, "med": 325.3, "vus": 10, "fails": 0, "reqs": 252}, {"t": 2700, "label": "2700s", "p95": 646.6, "med": 298.2, "vus": 10, "fails": 0, "reqs": 256}, {"t": 2760, "label": "2760s", "p95": 595.9, "med": 310.1, "vus": 10, "fails": 0, "reqs": 254}, {"t": 2820, "label": "2820s", "p95": 540.6, "med": 314.6, "vus": 10, "fails": 0, "reqs": 256}, {"t": 2880, "label": "2880s", "p95": 641.3, "med": 324.1, "vus": 10, "fails": 0, "reqs": 257}, {"t": 2940, "label": "2940s", "p95": 752.8, "med": 343.7, "vus": 10, "fails": 0, "reqs": 253}, {"t": 3000, "label": "3000s", "p95": 708.1, "med": 305.7, "vus": 10, "fails": 0, "reqs": 256}, {"t": 3060, "label": "3060s", "p95": 729.5, "med": 327.9, "vus": 10, "fails": 0, "reqs": 250}, {"t": 3120, "label": "3120s", "p95": 669.4, "med": 311.4, "vus": 10, "fails": 0, "reqs": 259}, {"t": 3180, "label": "3180s", "p95": 820.9, "med": 329.7, "vus": 10, "fails": 0, "reqs": 252}, {"t": 3240, "label": "3240s", "p95": 606.1, "med": 311.3, "vus": 10, "fails": 0, "reqs": 258}, {"t": 3300, "label": "3300s", "p95": 727.7, "med": 340.0, "vus": 10, "fails": 0, "reqs": 252}, {"t": 3360, "label": "3360s", "p95": 705.7, "med": 325.6, "vus": 10, "fails": 0, "reqs": 253}, {"t": 3420, "label": "3420s", "p95": 645.8, "med": 310.8, "vus": 10, "fails": 0, "reqs": 248}, {"t": 3480, "label": "3480s", "p95": 478.4, "med": 302.6, "vus": 10, "fails": 0, "reqs": 210}, {"t": 3540, "label": "3540s", "p95": 402.1, "med": 268.7, "vus": 6, "fails": 0, "reqs": 88}, {"t": 3600, "label": "3600s", "p95": 254.2, "med": 254.2, "vus": 1, "fails": 0, "reqs": 1}]}, "spike_20261116_2311": {"stem": "spike_20261116_2311", "files": ["spike_20261116_2311.json", "spike_20261116_2311.txt", "spike_20261116_2311.csv"], "has_csv": true, "completed": true, "duration_str": "7m23.8s", "last_running": "running (7m23.8s), 00/50 VUs, 560 complete and 0 interrupted iterations", "vus_max": 50, "iterations": 560, "reqs_count": 1680, "reqs_rate": 3.79, "fail_count": 0, "fail_total": 1680, "fail_pct": 0, "checks_pass": 1680, "checks_total": 1680, "dur_min": 210.4, "dur_med": 355.7, "dur_avg": 2477.8, "dur_p90": 8799.9, "dur_p95": 10003.1, "dur_max": 14367.6, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.05", "fail_passed": true, "ts_range": {"start": "2026-11-16 23:11:16 +07:00", "end": "2026-11-16 23:18:39 +07:00", "span_s": 443, "bucket_sec": 10}, "series": [{"t": 0, "label": "0s", "p95": 382.8, "med": 329.8, "vus": 1, "fails": 0, "reqs": 9}, {"t": 10, "label": "10s", "p95": 399.0, "med": 320.7, "vus": 2, "fails": 0, "reqs": 12}, {"t": 20, "label": "20s", "p95": 337.7, "med": 288.1, "vus": 2, "fails": 0, "reqs": 16}, {"t": 30, "label": "30s", "p95": 328.5, "med": 259.8, "vus": 3, "fails": 0, "reqs": 23}, {"t": 40, "label": "40s", "p95": 390.4, "med": 297.8, "vus": 4, "fails": 0, "reqs": 27}, {"t": 50, "label": "50s", "p95": 340.3, "med": 297.0, "vus": 4, "fails": 0, "reqs": 31}, {"t": 60, "label": "60s", "p95": 4102.3, "med": 2090.3, "vus": 49, "fails": 0, "reqs": 29}, {"t": 70, "label": "70s", "p95": 12816.5, "med": 10176.0, "vus": 50, "fails": 0, "reqs": 44}, {"t": 80, "label": "80s", "p95": 13877.3, "med": 7882.4, "vus": 50, "fails": 0, "reqs": 56}, {"t": 90, "label": "90s", "p95": 9345.0, "med": 8014.6, "vus": 50, "fails": 0, "reqs": 54}, {"t": 100, "label": "100s", "p95": 13084.5, "med": 8840.8, "vus": 50, "fails": 0, "reqs": 56}, {"t": 110, "label": "110s", "p95": 12126.4, "med": 7588.8, "vus": 50, "fails": 0, "reqs": 53}, {"t": 120, "label": "120s", "p95": 10874.7, "med": 8460.8, "vus": 50, "fails": 0, "reqs": 50}, {"t": 130, "label": "130s", "p95": 11463.2, "med": 8392.0, "vus": 50, "fails": 0, "reqs": 54}, {"t": 140, "label": "140s", "p95": 11667.7, "med": 8147.1, "vus": 49, "fails": 0, "reqs": 64}, {"t": 150, "label": "150s", "p95": 5555.4, "med": 645.3, "vus": 23, "fails": 0, "reqs": 55}, {"t": 160, "label": "160s", "p95": 594.0, "med": 358.9, "vus": 5, "fails": 0, "reqs": 34}, {"t": 170, "label": "170s", "p95": 676.6, "med": 366.9, "vus": 5, "fails": 0, "reqs": 37}, {"t": 180, "label": "180s", "p95": 527.9, "med": 322.7, "vus": 5, "fails": 0, "reqs": 38}, {"t": 190, "label": "190s", "p95": 463.4, "med": 325.5, "vus": 5, "fails": 0, "reqs": 36}, {"t": 200, "label": "200s", "p95": 644.0, "med": 293.8, "vus": 5, "fails": 0, "reqs": 37}, {"t": 210, "label": "210s", "p95": 405.7, "med": 305.0, "vus": 5, "fails": 0, "reqs": 35}, {"t": 220, "label": "220s", "p95": 630.1, "med": 323.5, "vus": 5, "fails": 0, "reqs": 39}, {"t": 230, "label": "230s", "p95": 412.8, "med": 299.1, "vus": 5, "fails": 0, "reqs": 36}, {"t": 240, "label": "240s", "p95": 412.8, "med": 303.9, "vus": 5, "fails": 0, "reqs": 36}, {"t": 250, "label": "250s", "p95": 374.3, "med": 305.1, "vus": 5, "fails": 0, "reqs": 38}, {"t": 260, "label": "260s", "p95": 410.3, "med": 308.8, "vus": 5, "fails": 0, "reqs": 39}, {"t": 270, "label": "270s", "p95": 493.7, "med": 342.1, "vus": 5, "fails": 0, "reqs": 34}, {"t": 280, "label": "280s", "p95": 415.7, "med": 299.0, "vus": 5, "fails": 0, "reqs": 39}, {"t": 290, "label": "290s", "p95": 519.6, "med": 305.5, "vus": 5, "fails": 0, "reqs": 35}, {"t": 300, "label": "300s", "p95": 508.2, "med": 318.6, "vus": 5, "fails": 0, "reqs": 37}, {"t": 310, "label": "310s", "p95": 418.3, "med": 301.6, "vus": 5, "fails": 0, "reqs": 38}, {"t": 320, "label": "320s", "p95": 589.2, "med": 335.5, "vus": 5, "fails": 0, "reqs": 37}, {"t": 330, "label": "330s", "p95": 397.9, "med": 306.6, "vus": 5, "fails": 0, "reqs": 40}, {"t": 340, "label": "340s", "p95": 650.4, "med": 300.6, "vus": 5, "fails": 0, "reqs": 38}, {"t": 350, "label": "350s", "p95": 476.3, "med": 308.2, "vus": 5, "fails": 0, "reqs": 36}, {"t": 360, "label": "360s", "p95": 592.1, "med": 351.7, "vus": 5, "fails": 0, "reqs": 37}, {"t": 370, "label": "370s", "p95": 553.7, "med": 317.7, "vus": 5, "fails": 0, "reqs": 37}, {"t": 380, "label": "380s", "p95": 545.3, "med": 349.2, "vus": 5, "fails": 0, "reqs": 36}, {"t": 390, "label": "390s", "p95": 465.0, "med": 336.2, "vus": 5, "fails": 0, "reqs": 40}, {"t": 400, "label": "400s", "p95": 459.3, "med": 291.4, "vus": 5, "fails": 0, "reqs": 37}, {"t": 410, "label": "410s", "p95": 378.9, "med": 304.5, "vus": 5, "fails": 0, "reqs": 37}, {"t": 420, "label": "420s", "p95": 451.2, "med": 318.7, "vus": 5, "fails": 0, "reqs": 39}, {"t": 430, "label": "430s", "p95": 499.1, "med": 325.0, "vus": 5, "fails": 0, "reqs": 40}, {"t": 440, "label": "440s", "p95": 243.2, "med": 243.0, "vus": 5, "fails": 0, "reqs": 5}]}, "spike_20261118_1735": {"stem": "spike_20261118_1735", "files": ["spike_20261118_1735.json", "spike_20261118_1735.txt", "spike_20261118_1735.csv"], "has_csv": true, "completed": true, "duration_str": "7m23.2s", "last_running": "running (7m23.2s), 00/50 VUs, 552 complete and 0 interrupted iterations", "vus_max": 50, "iterations": 552, "reqs_count": 1656, "reqs_rate": 3.74, "fail_count": 0, "fail_total": 1656, "fail_pct": 0, "checks_pass": 1656, "checks_total": 1656, "dur_min": 201.7, "dur_med": 369.7, "dur_avg": 2443.5, "dur_p90": 8939.0, "dur_p95": 10382.7, "dur_max": 16091.8, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.05", "fail_passed": true, "ts_range": {"start": "2026-11-18 17:53:57 +07:00", "end": "2026-11-18 18:01:19 +07:00", "span_s": 442, "bucket_sec": 10}, "series": [{"t": 0, "label": "0s", "p95": 342.9, "med": 287.8, "vus": 1, "fails": 0, "reqs": 9}, {"t": 10, "label": "10s", "p95": 350.3, "med": 289.3, "vus": 2, "fails": 0, "reqs": 13}, {"t": 20, "label": "20s", "p95": 413.0, "med": 302.1, "vus": 2, "fails": 0, "reqs": 17}, {"t": 30, "label": "30s", "p95": 343.4, "med": 286.6, "vus": 3, "fails": 0, "reqs": 22}, {"t": 40, "label": "40s", "p95": 387.5, "med": 277.3, "vus": 4, "fails": 0, "reqs": 26}, {"t": 50, "label": "50s", "p95": 414.3, "med": 301.0, "vus": 4, "fails": 0, "reqs": 32}, {"t": 60, "label": "60s", "p95": 6214.0, "med": 2942.4, "vus": 49, "fails": 0, "reqs": 31}, {"t": 70, "label": "70s", "p95": 12384.4, "med": 7983.7, "vus": 50, "fails": 0, "reqs": 40}, {"t": 80, "label": "80s", "p95": 15010.4, "med": 9634.2, "vus": 50, "fails": 0, "reqs": 54}, {"t": 90, "label": "90s", "p95": 10754.4, "med": 8467.5, "vus": 50, "fails": 0, "reqs": 48}, {"t": 100, "label": "100s", "p95": 11394.9, "med": 8845.1, "vus": 50, "fails": 0, "reqs": 51}, {"t": 110, "label": "110s", "p95": 14227.6, "med": 7768.4, "vus": 50, "fails": 0, "reqs": 59}, {"t": 120, "label": "120s", "p95": 11188.3, "med": 8736.0, "vus": 50, "fails": 0, "reqs": 45}, {"t": 130, "label": "130s", "p95": 13427.9, "med": 8158.3, "vus": 49, "fails": 0, "reqs": 53}, {"t": 140, "label": "140s", "p95": 11475.2, "med": 6447.7, "vus": 43, "fails": 0, "reqs": 69}, {"t": 150, "label": "150s", "p95": 1117.2, "med": 385.6, "vus": 13, "fails": 0, "reqs": 46}, {"t": 160, "label": "160s", "p95": 376.5, "med": 281.1, "vus": 5, "fails": 0, "reqs": 35}, {"t": 170, "label": "170s", "p95": 617.6, "med": 428.0, "vus": 5, "fails": 0, "reqs": 35}, {"t": 180, "label": "180s", "p95": 540.5, "med": 394.1, "vus": 5, "fails": 0, "reqs": 39}, {"t": 190, "label": "190s", "p95": 419.7, "med": 269.9, "vus": 5, "fails": 0, "reqs": 35}, {"t": 200, "label": "200s", "p95": 427.0, "med": 282.0, "vus": 5, "fails": 0, "reqs": 37}, {"t": 210, "label": "210s", "p95": 664.9, "med": 324.8, "vus": 5, "fails": 0, "reqs": 37}, {"t": 220, "label": "220s", "p95": 513.2, "med": 350.6, "vus": 5, "fails": 0, "reqs": 38}, {"t": 230, "label": "230s", "p95": 491.8, "med": 381.1, "vus": 5, "fails": 0, "reqs": 33}, {"t": 240, "label": "240s", "p95": 629.3, "med": 482.0, "vus": 5, "fails": 0, "reqs": 33}, {"t": 250, "label": "250s", "p95": 524.2, "med": 351.8, "vus": 5, "fails": 0, "reqs": 37}, {"t": 260, "label": "260s", "p95": 427.0, "med": 287.9, "vus": 5, "fails": 0, "reqs": 42}, {"t": 270, "label": "270s", "p95": 376.9, "med": 297.8, "vus": 5, "fails": 0, "reqs": 37}, {"t": 280, "label": "280s", "p95": 465.6, "med": 321.5, "vus": 5, "fails": 0, "reqs": 40}, {"t": 290, "label": "290s", "p95": 551.6, "med": 347.2, "vus": 5, "fails": 0, "reqs": 36}, {"t": 300, "label": "300s", "p95": 414.0, "med": 293.1, "vus": 5, "fails": 0, "reqs": 36}, {"t": 310, "label": "310s", "p95": 472.4, "med": 301.1, "vus": 5, "fails": 0, "reqs": 38}, {"t": 320, "label": "320s", "p95": 472.1, "med": 329.5, "vus": 5, "fails": 0, "reqs": 37}, {"t": 330, "label": "330s", "p95": 607.1, "med": 379.1, "vus": 5, "fails": 0, "reqs": 35}, {"t": 340, "label": "340s", "p95": 571.5, "med": 346.1, "vus": 5, "fails": 0, "reqs": 42}, {"t": 350, "label": "350s", "p95": 440.8, "med": 313.7, "vus": 5, "fails": 0, "reqs": 35}, {"t": 360, "label": "360s", "p95": 493.5, "med": 333.8, "vus": 5, "fails": 0, "reqs": 37}, {"t": 370, "label": "370s", "p95": 511.0, "med": 322.2, "vus": 5, "fails": 0, "reqs": 38}, {"t": 380, "label": "380s", "p95": 548.7, "med": 355.5, "vus": 5, "fails": 0, "reqs": 37}, {"t": 390, "label": "390s", "p95": 691.0, "med": 296.3, "vus": 5, "fails": 0, "reqs": 40}, {"t": 400, "label": "400s", "p95": 367.3, "med": 300.4, "vus": 5, "fails": 0, "reqs": 37}, {"t": 410, "label": "410s", "p95": 487.9, "med": 330.3, "vus": 5, "fails": 0, "reqs": 37}, {"t": 420, "label": "420s", "p95": 429.5, "med": 287.3, "vus": 5, "fails": 0, "reqs": 37}, {"t": 430, "label": "430s", "p95": 590.1, "med": 316.7, "vus": 5, "fails": 0, "reqs": 36}, {"t": 440, "label": "440s", "p95": 270.1, "med": 246.6, "vus": 4, "fails": 0, "reqs": 5}]}, "stress_20261116_2109": {"stem": "stress_20261116_2109", "files": ["stress_20261116_2109.json", "stress_20261116_2109.txt", "stress_20261116_2109.csv"], "has_csv": true, "completed": true, "duration_str": "11m16.9s", "last_running": "running (11m16.9s), 000/100 VUs, 1057 complete and 23 interrupted iterations", "vus_max": 100, "iterations": 1057, "reqs_count": 3200, "reqs_rate": 4.73, "fail_count": 8, "fail_total": 3200, "fail_pct": 0.25, "checks_pass": 3192, "checks_total": 3200, "dur_min": 232.4, "dur_med": 8640.3, "dur_avg": 9647.4, "dur_p90": 17780.5, "dur_p95": 21600.4, "dur_max": 60003.0, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.05", "fail_passed": true, "ts_range": {"start": "2026-11-16 21:09:41 +07:00", "end": "2026-11-16 21:20:57 +07:00", "span_s": 676, "bucket_sec": 15}, "series": [{"t": 0, "label": "0s", "p95": 468.5, "med": 351.6, "vus": 3, "fails": 0, "reqs": 18}, {"t": 15, "label": "15s", "p95": 558.3, "med": 362.7, "vus": 5, "fails": 0, "reqs": 47}, {"t": 30, "label": "30s", "p95": 737.7, "med": 431.1, "vus": 8, "fails": 0, "reqs": 67}, {"t": 45, "label": "45s", "p95": 861.5, "med": 468.5, "vus": 10, "fails": 0, "reqs": 85}, {"t": 60, "label": "60s", "p95": 1602.7, "med": 904.6, "vus": 12, "fails": 0, "reqs": 86}, {"t": 75, "label": "75s", "p95": 2363.7, "med": 1523.2, "vus": 15, "fails": 0, "reqs": 84}, {"t": 90, "label": "90s", "p95": 2754.0, "med": 1823.4, "vus": 17, "fails": 0, "reqs": 80}, {"t": 105, "label": "105s", "p95": 4065.6, "med": 2655.3, "vus": 19, "fails": 0, "reqs": 72}, {"t": 120, "label": "120s", "p95": 4294.8, "med": 3006.5, "vus": 22, "fails": 0, "reqs": 78}, {"t": 135, "label": "135s", "p95": 4309.3, "med": 3189.6, "vus": 24, "fails": 0, "reqs": 82}, {"t": 150, "label": "150s", "p95": 5199.2, "med": 3634.9, "vus": 27, "fails": 0, "reqs": 78}, {"t": 165, "label": "165s", "p95": 6414.2, "med": 4569.8, "vus": 29, "fails": 0, "reqs": 69}, {"t": 180, "label": "180s", "p95": 7367.6, "med": 4796.6, "vus": 32, "fails": 0, "reqs": 80}, {"t": 195, "label": "195s", "p95": 7289.4, "med": 5144.0, "vus": 34, "fails": 0, "reqs": 79}, {"t": 210, "label": "210s", "p95": 9078.8, "med": 5404.3, "vus": 37, "fails": 0, "reqs": 79}, {"t": 225, "label": "225s", "p95": 8675.7, "med": 5679.5, "vus": 39, "fails": 0, "reqs": 76}, {"t": 240, "label": "240s", "p95": 9930.5, "med": 7818.8, "vus": 42, "fails": 0, "reqs": 68}, {"t": 255, "label": "255s", "p95": 10224.4, "med": 7155.6, "vus": 44, "fails": 0, "reqs": 77}, {"t": 270, "label": "270s", "p95": 10374.2, "med": 7349.9, "vus": 47, "fails": 0, "reqs": 77}, {"t": 285, "label": "285s", "p95": 14624.8, "med": 9379.7, "vus": 49, "fails": 0, "reqs": 77}, {"t": 300, "label": "300s", "p95": 16715.8, "med": 15103.0, "vus": 52, "fails": 0, "reqs": 61}, {"t": 315, "label": "315s", "p95": 13334.3, "med": 9525.3, "vus": 54, "fails": 0, "reqs": 62}, {"t": 330, "label": "330s", "p95": 12316.9, "med": 8532.9, "vus": 57, "fails": 0, "reqs": 78}, {"t": 345, "label": "345s", "p95": 12846.5, "med": 10121.4, "vus": 59, "fails": 0, "reqs": 83}, {"t": 360, "label": "360s", "p95": 13547.8, "med": 10279.6, "vus": 62, "fails": 0, "reqs": 71}, {"t": 375, "label": "375s", "p95": 15444.9, "med": 10536.5, "vus": 64, "fails": 0, "reqs": 78}, {"t": 390, "label": "390s", "p95": 14451.4, "med": 10635.1, "vus": 67, "fails": 0, "reqs": 83}, {"t": 405, "label": "405s", "p95": 17793.4, "med": 11416.9, "vus": 69, "fails": 0, "reqs": 66}, {"t": 420, "label": "420s", "p95": 19632.6, "med": 14484.4, "vus": 72, "fails": 0, "reqs": 73}, {"t": 435, "label": "435s", "p95": 17363.7, "med": 13109.9, "vus": 74, "fails": 0, "reqs": 77}, {"t": 450, "label": "450s", "p95": 16580.6, "med": 13280.9, "vus": 77, "fails": 0, "reqs": 76}, {"t": 465, "label": "465s", "p95": 16226.4, "med": 13020.6, "vus": 79, "fails": 0, "reqs": 82}, {"t": 480, "label": "480s", "p95": 17904.1, "med": 13109.2, "vus": 82, "fails": 0, "reqs": 74}, {"t": 495, "label": "495s", "p95": 21747.5, "med": 16758.0, "vus": 84, "fails": 0, "reqs": 67}, {"t": 510, "label": "510s", "p95": 22008.0, "med": 15909.5, "vus": 87, "fails": 0, "reqs": 83}, {"t": 525, "label": "525s", "p95": 20975.2, "med": 14377.7, "vus": 89, "fails": 0, "reqs": 68}, {"t": 540, "label": "540s", "p95": 22669.6, "med": 15902.1, "vus": 92, "fails": 0, "reqs": 86}, {"t": 555, "label": "555s", "p95": 22277.1, "med": 16246.3, "vus": 94, "fails": 0, "reqs": 70}, {"t": 570, "label": "570s", "p95": 27123.7, "med": 18308.3, "vus": 97, "fails": 0, "reqs": 71}, {"t": 585, "label": "585s", "p95": 27808.5, "med": 20763.4, "vus": 99, "fails": 0, "reqs": 44}, {"t": 600, "label": "600s", "p95": 21600.3, "med": 21600.3, "vus": 100, "fails": 0, "reqs": 4}, {"t": 615, "label": "615s", "p95": 44615.3, "med": 21128.9, "vus": 100, "fails": 1, "reqs": 89}, {"t": 630, "label": "630s", "p95": 60000.9, "med": 25549.3, "vus": 86, "fails": 7, "reqs": 83}, {"t": 645, "label": "645s", "p95": 16930.7, "med": 11283.9, "vus": 58, "fails": 0, "reqs": 69}, {"t": 660, "label": "660s", "p95": 26504.4, "med": 2449.2, "vus": 32, "fails": 0, "reqs": 42}, {"t": 675, "label": "675s", "p95": 1220.2, "med": 1220.2, "vus": 1, "fails": 0, "reqs": 1}]}, "stress_20261118_1735": {"stem": "stress_20261118_1735", "files": ["stress_20261118_1735.json", "stress_20261118_1735.txt", "stress_20261118_1735.csv"], "has_csv": true, "completed": true, "duration_str": "11m04.6s", "last_running": "running (11m04.6s), 000/100 VUs, 1046 complete and 22 interrupted iterations", "vus_max": 100, "iterations": 1046, "reqs_count": 3177, "reqs_rate": 4.78, "fail_count": 0, "fail_total": 3177, "fail_pct": 0, "checks_pass": 3177, "checks_total": 3177, "dur_min": 206.2, "dur_med": 8977.5, "dur_avg": 9778.2, "dur_p90": 19508.4, "dur_p95": 22058.0, "dur_max": 28150.6, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.05", "fail_passed": true, "ts_range": {"start": "2026-11-18 17:42:51 +07:00", "end": "2026-11-18 17:53:56 +07:00", "span_s": 665, "bucket_sec": 15}, "series": [{"t": 0, "label": "0s", "p95": 348.5, "med": 297.4, "vus": 3, "fails": 0, "reqs": 24}, {"t": 15, "label": "15s", "p95": 383.9, "med": 268.7, "vus": 5, "fails": 0, "reqs": 46}, {"t": 30, "label": "30s", "p95": 836.0, "med": 369.0, "vus": 7, "fails": 0, "reqs": 66}, {"t": 45, "label": "45s", "p95": 961.1, "med": 555.8, "vus": 10, "fails": 0, "reqs": 84}, {"t": 60, "label": "60s", "p95": 1456.2, "med": 926.9, "vus": 12, "fails": 0, "reqs": 84}, {"t": 75, "label": "75s", "p95": 2192.1, "med": 1285.3, "vus": 15, "fails": 0, "reqs": 86}, {"t": 90, "label": "90s", "p95": 2614.8, "med": 1764.5, "vus": 17, "fails": 0, "reqs": 84}, {"t": 105, "label": "105s", "p95": 3356.9, "med": 2322.3, "vus": 19, "fails": 0, "reqs": 80}, {"t": 120, "label": "120s", "p95": 4724.5, "med": 2732.2, "vus": 22, "fails": 0, "reqs": 80}, {"t": 135, "label": "135s", "p95": 4857.1, "med": 3346.1, "vus": 24, "fails": 0, "reqs": 77}, {"t": 150, "label": "150s", "p95": 5320.8, "med": 3682.2, "vus": 27, "fails": 0, "reqs": 78}, {"t": 165, "label": "165s", "p95": 6487.2, "med": 4596.3, "vus": 29, "fails": 0, "reqs": 79}, {"t": 180, "label": "180s", "p95": 7003.1, "med": 4849.8, "vus": 32, "fails": 0, "reqs": 73}, {"t": 195, "label": "195s", "p95": 8165.0, "med": 4865.6, "vus": 34, "fails": 0, "reqs": 77}, {"t": 210, "label": "210s", "p95": 8002.1, "med": 5638.0, "vus": 37, "fails": 0, "reqs": 82}, {"t": 225, "label": "225s", "p95": 9183.9, "med": 6744.9, "vus": 39, "fails": 0, "reqs": 70}, {"t": 240, "label": "240s", "p95": 9055.3, "med": 6538.5, "vus": 42, "fails": 0, "reqs": 78}, {"t": 255, "label": "255s", "p95": 9483.2, "med": 7104.5, "vus": 44, "fails": 0, "reqs": 83}, {"t": 270, "label": "270s", "p95": 11366.2, "med": 7758.5, "vus": 47, "fails": 0, "reqs": 70}, {"t": 285, "label": "285s", "p95": 12035.4, "med": 8206.8, "vus": 49, "fails": 0, "reqs": 63}, {"t": 300, "label": "300s", "p95": 15362.3, "med": 9956.7, "vus": 52, "fails": 0, "reqs": 77}, {"t": 315, "label": "315s", "p95": 12429.8, "med": 9637.7, "vus": 54, "fails": 0, "reqs": 72}, {"t": 330, "label": "330s", "p95": 13137.6, "med": 9970.5, "vus": 57, "fails": 0, "reqs": 70}, {"t": 345, "label": "345s", "p95": 14388.7, "med": 10623.6, "vus": 59, "fails": 0, "reqs": 77}, {"t": 360, "label": "360s", "p95": 15539.4, "med": 11744.3, "vus": 62, "fails": 0, "reqs": 62}, {"t": 375, "label": "375s", "p95": 17378.4, "med": 13074.3, "vus": 64, "fails": 0, "reqs": 69}, {"t": 390, "label": "390s", "p95": 15259.6, "med": 11798.8, "vus": 67, "fails": 0, "reqs": 74}, {"t": 405, "label": "405s", "p95": 16574.4, "med": 12961.9, "vus": 69, "fails": 0, "reqs": 68}, {"t": 420, "label": "420s", "p95": 18247.2, "med": 12833.9, "vus": 72, "fails": 0, "reqs": 69}, {"t": 435, "label": "435s", "p95": 19376.2, "med": 14504.6, "vus": 74, "fails": 0, "reqs": 70}, {"t": 450, "label": "450s", "p95": 21594.6, "med": 15926.3, "vus": 77, "fails": 0, "reqs": 55}, {"t": 465, "label": "465s", "p95": 22017.7, "med": 16722.8, "vus": 79, "fails": 0, "reqs": 76}, {"t": 480, "label": "480s", "p95": 19258.2, "med": 15058.7, "vus": 82, "fails": 0, "reqs": 73}, {"t": 495, "label": "495s", "p95": 20531.4, "med": 15085.9, "vus": 84, "fails": 0, "reqs": 71}, {"t": 510, "label": "510s", "p95": 23065.0, "med": 16425.2, "vus": 87, "fails": 0, "reqs": 73}, {"t": 525, "label": "525s", "p95": 24773.4, "med": 17856.3, "vus": 89, "fails": 0, "reqs": 57}, {"t": 540, "label": "540s", "p95": 25834.3, "med": 19945.8, "vus": 92, "fails": 0, "reqs": 61}, {"t": 555, "label": "555s", "p95": 25414.7, "med": 18883.3, "vus": 94, "fails": 0, "reqs": 69}, {"t": 570, "label": "570s", "p95": 24247.8, "med": 18576.6, "vus": 97, "fails": 0, "reqs": 75}, {"t": 585, "label": "585s", "p95": 24745.1, "med": 18860.3, "vus": 99, "fails": 0, "reqs": 70}, {"t": 600, "label": "600s", "p95": 25548.8, "med": 19642.7, "vus": 100, "fails": 0, "reqs": 62}, {"t": 615, "label": "615s", "p95": 26299.6, "med": 20517.2, "vus": 98, "fails": 0, "reqs": 68}, {"t": 630, "label": "630s", "p95": 25867.4, "med": 18747.9, "vus": 90, "fails": 0, "reqs": 81}, {"t": 645, "label": "645s", "p95": 15086.3, "med": 8674.4, "vus": 58, "fails": 0, "reqs": 97}, {"t": 660, "label": "660s", "p95": 1681.9, "med": 1148.1, "vus": 15, "fails": 0, "reqs": 17}]}, "vu05_20261116_2134": {"stem": "vu05_20261116_2134", "files": ["vu05_20261116_2134.json", "vu05_20261116_2134.txt"], "has_csv": false, "completed": true, "duration_str": "2m36.5s", "last_running": "running (2m36.5s), 0/5 VUs, 96 complete and 0 interrupted iterations", "vus_max": 5, "iterations": 96, "reqs_count": 288, "reqs_rate": 1.84, "fail_count": 0, "fail_total": 288, "fail_pct": 0, "checks_pass": 288, "checks_total": 288, "dur_min": 231.7, "dur_med": 338.6, "dur_avg": 362.7, "dur_p90": 473.7, "dur_p95": 557.5, "dur_max": 1177.6, "dur_rule": "p(95)<1000", "dur_passed": true, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": null, "series": null}, "vu10_20261116_2138": {"stem": "vu10_20261116_2138", "files": ["vu10_20261116_2138.json", "vu10_20261116_2138.txt"], "has_csv": false, "completed": true, "duration_str": "2m37.4s", "last_running": "running (2m37.4s), 00/10 VUs, 191 complete and 0 interrupted iterations", "vus_max": 10, "iterations": 191, "reqs_count": 573, "reqs_rate": 3.64, "fail_count": 0, "fail_total": 573, "fail_pct": 0, "checks_pass": 573, "checks_total": 573, "dur_min": 217.2, "dur_med": 382.0, "dur_avg": 444.2, "dur_p90": 738.4, "dur_p95": 836.7, "dur_max": 1303.2, "dur_rule": "p(95)<1000", "dur_passed": true, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": null, "series": null}, "vu12_20261116_2147": {"stem": "vu12_20261116_2147", "files": ["vu12_20261116_2147.json", "vu12_20261116_2147.txt"], "has_csv": false, "completed": true, "duration_str": "2m37.4s", "last_running": "running (2m37.4s), 00/12 VUs, 222 complete and 0 interrupted iterations", "vus_max": 12, "iterations": 222, "reqs_count": 666, "reqs_rate": 4.23, "fail_count": 0, "fail_total": 666, "fail_pct": 0, "checks_pass": 666, "checks_total": 666, "dur_min": 229.1, "dur_med": 449.3, "dur_avg": 511.0, "dur_p90": 788.3, "dur_p95": 961.4, "dur_max": 1691.8, "dur_rule": "p(95)<1000", "dur_passed": true, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": null, "series": null}, "vu13_20261116_2144": {"stem": "vu13_20261116_2144", "files": ["vu13_20261116_2144.json", "vu13_20261116_2144.txt"], "has_csv": false, "completed": true, "duration_str": "2m36.9s", "last_running": "running (2m36.9s), 00/13 VUs, 238 complete and 0 interrupted iterations", "vus_max": 13, "iterations": 238, "reqs_count": 714, "reqs_rate": 4.55, "fail_count": 0, "fail_total": 714, "fail_pct": 0, "checks_pass": 714, "checks_total": 714, "dur_min": 226.3, "dur_med": 477.1, "dur_avg": 539.6, "dur_p90": 806.9, "dur_p95": 1005.0, "dur_max": 3170.5, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": null, "series": null}, "vu15_20261116_2140": {"stem": "vu15_20261116_2140", "files": ["vu15_20261116_2140.json", "vu15_20261116_2140.txt"], "has_csv": false, "completed": true, "duration_str": "2m38.4s", "last_running": "running (2m38.4s), 00/15 VUs, 261 complete and 0 interrupted iterations", "vus_max": 15, "iterations": 261, "reqs_count": 783, "reqs_rate": 4.94, "fail_count": 0, "fail_total": 783, "fail_pct": 0, "checks_pass": 783, "checks_total": 783, "dur_min": 229.3, "dur_med": 538.6, "dur_avg": 654.0, "dur_p90": 1167.8, "dur_p95": 1404.2, "dur_max": 2317.9, "dur_rule": "p(95)<1000", "dur_passed": false, "fail_rule": "rate<0.01", "fail_passed": true, "ts_range": null, "series": null}};
+
+function showTab(id, btn) {
+  document.getElementById('tab-nov18').classList.add('hidden');
+  document.getElementById('tab-nov16').classList.add('hidden');
+  document.getElementById('tab-inv').classList.add('hidden');
+  document.getElementById('tab-nov18' === 'tab-' + id ? 'tab-nov18' : 'tab-' + id).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function badge(ok, passTxt='PASS', failTxt='CROSSED') {
+  return `<span class="badge ${ok ? 'pass' : 'fail'}">${ok ? passTxt : failTxt}</span>`;
+}
+
+function renderCards(containerId, items) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = items.map(([title, stem, note]) => {
+    const r = RUNS[stem];
+    const ts = r.ts_range ? `${r.ts_range.start.slice(11,19)} – ${r.ts_range.end.slice(11,19)} +07` : `Duration ${r.duration_str}`;
+    return `
+      <div class="card">
+        <h3><span>${title}</span>${badge(r.dur_passed && r.fail_passed, 'ALL THRESHOLDS OK', 'THRESHOLD CROSSED')}</h3>
+        <div class="kv">
+          <span class="k">Source</span><span class="v mono">${r.stem}.*</span>
+          <span class="k">Window</span><span class="v">${ts}</span>
+          <span class="k">Max VUs</span><span class="v">${r.vus_max} VUs</span>
+          <span class="k">Requests</span><span class="v">${r.reqs_count.toLocaleString()} (${r.reqs_rate}/s)</span>
+          <span class="k">Latency p(95)</span><span class="v">${r.dur_p95} ms ${badge(r.dur_passed, 'PASS', '>1s')}</span>
+          <span class="k">Latency med / max</span><span class="v">${r.dur_med} / ${r.dur_max} ms</span>
+          <span class="k">Failed reqs</span><span class="v">${r.fail_count}/${r.fail_total} (${r.fail_pct}%) ${badge(r.fail_passed, 'PASS', 'FAIL')}</span>
+          <span class="k">Checks passed</span><span class="v">${r.checks_pass.toLocaleString()} / ${r.checks_total.toLocaleString()}</span>
+        </div>
+        <p style="font-size:0.81rem;color:var(--muted);margin:10px 0 0;">${note}</p>
+      </div>`;
+  }).join('');
+}
+
+function renderTable(containerId, stems) {
+  const rows = stems.map(([label, stem]) => {
+    const r = RUNS[stem];
+    return `<tr>
+      <td><strong>${label}</strong><br><span class="mono" style="color:var(--muted)">${r.stem}</span></td>
+      <td>${r.duration_str}</td>
+      <td class="num">${r.vus_max}</td>
+      <td class="num">${r.reqs_count.toLocaleString()}</td>
+      <td class="num">${r.reqs_rate}</td>
+      <td class="num">${r.dur_min}</td>
+      <td class="num">${r.dur_med}</td>
+      <td class="num">${r.dur_avg}</td>
+      <td class="num">${r.dur_p90}</td>
+      <td class="num"><strong>${r.dur_p95}</strong></td>
+      <td class="num">${r.dur_max}</td>
+      <td class="num">${r.fail_count} (${r.fail_pct}%)</td>
+      <td class="num">${r.checks_pass}/${r.checks_total}</td>
+      <td>${badge(r.dur_passed)} <span class="mono">${r.dur_rule}</span><br>${badge(r.fail_passed)} <span class="mono">${r.fail_rule}</span></td>
+      <td>${r.has_csv ? '<span class="badge info">JSON+TXT+CSV</span>' : '<span class="badge warn">JSON+TXT only</span>'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById(containerId).innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Test / Run ID</th><th>Duration</th><th class="num">vus_max</th><th class="num">Reqs</th><th class="num">Req/s</th>
+        <th class="num">Min (ms)</th><th class="num">Med (ms)</th><th class="num">Avg (ms)</th><th class="num">p90 (ms)</th><th class="num">p95 (ms)</th><th class="num">Max (ms)</th>
+        <th class="num">Failed</th><th class="num">Checks</th><th>Thresholds</th><th>Files</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function svgLineChart(title, meta, series, showThreshold=true) {
+  const W = 560, H = 220, padL = 52, padR = 42, padT = 16, padB = 28;
+  const cw = W - padL - padR, ch = H - padT - padB;
+  const p95Vals = series.map(p => p.p95).filter(v => v !== null);
+  const maxLat = Math.max(1200, ...p95Vals, 1);
+  const maxVu = Math.max(1, ...series.map(p => p.vus));
+  const x = i => padL + (series.length > 1 ? (i / (series.length - 1)) * cw : cw / 2);
+  const yLat = v => padT + ch - (v / maxLat) * ch;
+  const yVu = v => padT + ch - (v / maxVu) * ch;
+
+  const pathFor = (key) => {
+    let d = '';
+    series.forEach((p, i) => {
+      if (p[key] === null) return;
+      d += (d === '' ? 'M' : 'L') + x(i).toFixed(1) + ',' + yLat(p[key]).toFixed(1) + ' ';
+    });
+    return d;
+  };
+  const vuPath = series.map((p, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + yVu(p.vus).toFixed(1)).join(' ');
+  const failBars = series.map((p, i) => p.fails > 0 ? `<rect x="${x(i)-3}" y="${padT}" width="6" height="${ch}" fill="rgba(239,68,68,0.28)"><title>${p.label}: ${p.fails} failed</title></rect>` : '').join('');
+  const thY = yLat(1000);
+  const ticks = [0, Math.round(maxLat/2), Math.round(maxLat)];
+  const xTicks = [0, Math.floor((series.length-1)/2), series.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+
+  return `
+    <div class="chart-card">
+      <div class="chart-title">${title}</div>
+      <div class="chart-meta">${meta}</div>
+      <svg viewBox="0 0 ${W} ${H}">
+        ${failBars}
+        ${ticks.map(t => `<line x1="${padL}" y1="${yLat(t)}" x2="${W-padR}" y2="${yLat(t)}" stroke="#334155" stroke-dasharray="3,3"/><text x="${padL-6}" y="${yLat(t)+4}" fill="#94a3b8" font-size="10" text-anchor="end">${t}ms</text>`).join('')}
+        ${showThreshold && thY >= padT ? `<line x1="${padL}" y1="${thY}" x2="${W-padR}" y2="${thY}" stroke="#f59e0b" stroke-dasharray="5,4"/><text x="${W-padR-2}" y="${thY-4}" fill="#fbbf24" font-size="9.5" text-anchor="end">1000 ms limit</text>` : ''}
+        <path d="${vuPath}" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-dasharray="4,2" opacity="0.85"/>
+        <path d="${pathFor('med')}" fill="none" stroke="#22c55e" stroke-width="2"/>
+        <path d="${pathFor('p95')}" fill="none" stroke="#38bdf8" stroke-width="2.2"/>
+        ${xTicks.map(idx => `<text x="${x(idx)}" y="${H-8}" fill="#94a3b8" font-size="10" text-anchor="middle">${series[idx].label}</text>`).join('')}
+        <text x="${W-padR+6}" y="${padT+10}" fill="#a78bfa" font-size="10">${maxVu} VUs</text>
+        <text x="${W-padR+6}" y="${padT+ch}" fill="#a78bfa" font-size="10">0 VUs</text>
+      </svg>
+      <div class="legend">
+        <span><span class="dot" style="background:#38bdf8"></span>p(95) latency (ms)</span>
+        <span><span class="dot" style="background:#22c55e"></span>Median latency (ms)</span>
+        <span><span class="dot" style="background:#a78bfa"></span>Peak VUs in bucket</span>
+        <span><span class="dot" style="background:rgba(239,68,68,.5)"></span>Failed requests</span>
+      </div>
+    </div>`;
+}
+
+function noCsvCard(title, stem) {
+  const r = RUNS[stem];
+  return `
+    <div class="chart-card">
+      <div class="chart-title">${title}</div>
+      <div class="chart-meta">Source: <code>${stem}.json</code>, <code>${stem}.txt</code></div>
+      <div style="padding:36px 16px;text-align:center;background:var(--card2);border-radius:8px;border:1px dashed var(--border);">
+        <span class="badge warn">TIME-SERIES DATA NOT AVAILABLE</span>
+        <p style="font-size:0.85rem;color:var(--muted);margin:10px auto 0;max-width:440px;">
+          No <code>.csv</code> file was saved for this run. Per reporting rules, time-series points are never fabricated from aggregate JSON summaries. Aggregate p(95) = <strong>${r.dur_p95} ms</strong>, Median = <strong>${r.dur_med} ms</strong>, Errors = <strong>${r.fail_pct}%</strong>.
+        </p>
+      </div>
+    </div>`;
+}
+
+function vuSweepChart() {
+  const stems = ['vu05_20261116_2134','vu10_20261116_2138','vu12_20261116_2147','vu13_20261116_2144','vu15_20261116_2140'];
+  const W = 560, H = 220, padL = 52, padR = 20, padT = 18, padB = 32;
+  const cw = W - padL - padR, ch = H - padT - padB;
+  const maxLat = 1600;
+  const bw = cw / stems.length * 0.55;
+  const y = v => padT + ch - (v / maxLat) * ch;
+  const bars = stems.map((s, i) => {
+    const r = RUNS[s];
+    const cx = padL + (i + 0.5) * (cw / stems.length);
+    const top = y(r.dur_p95);
+    const col = r.dur_passed ? '#22c55e' : '#ef4444';
+    return `<rect x="${cx - bw/2}" y="${top}" width="${bw}" height="${padT + ch - top}" fill="${col}" rx="4"/>
+            <text x="${cx}" y="${top - 5}" fill="#f1f5f9" font-size="10.5" font-weight="700" text-anchor="middle">${r.dur_p95}ms</text>
+            <text x="${cx}" y="${H - 10}" fill="#94a3b8" font-size="10.5" text-anchor="middle">${r.vus_max} VUs</text>`;
+  }).join('');
+  return `
+    <div class="chart-card">
+      <div class="chart-title">Constant-Load Capacity Sweep (16 Nov 2026, 5–15 VUs)</div>
+      <div class="chart-meta">Aggregate p(95) from <code>vu05..vu15_*.json</code> (2.5 min each) — crosses 1000 ms between 12 and 13 VUs</div>
+      <svg viewBox="0 0 ${W} ${H}">
+        <line x1="${padL}" y1="${y(1000)}" x2="${W-padR}" y2="${y(1000)}" stroke="#f59e0b" stroke-dasharray="5,4"/>
+        <text x="${W-padR}" y="${y(1000)-5}" fill="#fbbf24" font-size="10" text-anchor="end">1000 ms threshold</text>
+        ${bars}
+      </svg>
+    </div>`;
+}
+
+// Render Nov 18
+renderCards('cards-nov18', [
+  ['Average-Load', 'avg_load_20261118_1735', '20 VUs for 5 min (7m total). 0% errors, but p(95) 2847.8 ms exceeded 1000 ms threshold.'],
+  ['Stress Test', 'stress_20261118_1735', '20→100 VUs (11m04s). Latency climbed to 22,058 ms p(95), yet 0/3177 requests failed.'],
+  ['Spike Test', 'spike_20261118_1735', '5→50→5 VUs (7m23s). p(95) spiked during burst, 0% errors, recovered under 1s afterward.'],
+  ['Soak Test', 'soak_20261118_1735', '10 VUs for 1h (14,679 reqs). p(95) 692.9 ms (<1s PASS), 0.00% failed — stable over 1 hour.'],
+]);
+renderTable('table-nov18', [
+  ['Average-Load', 'avg_load_20261118_1735'],
+  ['Stress', 'stress_20261118_1735'],
+  ['Spike', 'spike_20261118_1735'],
+  ['Soak', 'soak_20261118_1735'],
+]);
+document.getElementById('charts-nov18').innerHTML =
+  noCsvCard('Average-Load (18 Nov 2026, 20 VUs)', 'avg_load_20261118_1735') +
+  svgLineChart('Stress Test (18 Nov 2026, 20→100 VUs)', `15s aggregation buckets · ${RUNS['stress_20261118_1735'].ts_range.start} to ${RUNS['stress_20261118_1735'].ts_range.end}`, RUNS['stress_20261118_1735'].series) +
+  svgLineChart('Spike Test (18 Nov 2026, 5→50→5 VUs)', `10s aggregation buckets · ${RUNS['spike_20261118_1735'].ts_range.start} to ${RUNS['spike_20261118_1735'].ts_range.end}`, RUNS['spike_20261118_1735'].series) +
+  svgLineChart('Soak Test (18 Nov 2026, 10 VUs, 1h)', `60s aggregation buckets · ${RUNS['soak_20261118_1735'].ts_range.start} to ${RUNS['soak_20261118_1735'].ts_range.end}`, RUNS['soak_20261118_1735'].series);
+
+// Render Nov 16
+renderCards('cards-nov16', [
+  ['Average-Load (Nov 16)', 'avg_load_20261116_2058', '20 VUs (7m06s). 0% failed, p(95) 3381.0 ms (>1s).'],
+  ['Stress (Nov 16)', 'stress_20261116_2109', '20→100 VUs (11m17s). 8/3200 (0.25%) timeouts at 100 VUs; p(95) 21,600.4 ms.'],
+  ['Spike (Nov 16)', 'spike_20261116_2311', '5→50→5 VUs (7m24s). 0% failed, recovered <1s within ~30–40s after spike.'],
+  ['Soak (Nov 16)', 'soak_20261116_2333', '10 VUs for 1h (14,694 reqs). p(95) 659.5 ms (<1s PASS), 0.00% failed.'],
+]);
+renderTable('table-nov16', [
+  ['Average-Load (Nov 16)', 'avg_load_20261116_2058'],
+  ['Stress (Nov 16)', 'stress_20261116_2109'],
+  ['Spike (Nov 16)', 'spike_20261116_2311'],
+  ['Soak (Nov 16)', 'soak_20261116_2333'],
+  ['Constant 5 VUs', 'vu05_20261116_2134'],
+  ['Constant 10 VUs', 'vu10_20261116_2138'],
+  ['Constant 12 VUs', 'vu12_20261116_2147'],
+  ['Constant 13 VUs', 'vu13_20261116_2144'],
+  ['Constant 15 VUs', 'vu15_20261116_2140'],
+]);
+document.getElementById('charts-nov16').innerHTML =
+  vuSweepChart() +
+  svgLineChart('Stress Test (16 Nov 2026, 20→100 VUs)', `15s buckets · 8 timeouts (red bars) near 100 VUs · ${RUNS['stress_20261116_2109'].ts_range.start}`, RUNS['stress_20261116_2109'].series) +
+  svgLineChart('Spike Test (16 Nov 2026, 5→50→5 VUs)', `10s buckets · ${RUNS['spike_20261116_2311'].ts_range.start}`, RUNS['spike_20261116_2311'].series) +
+  svgLineChart('Soak Test (16 Nov 2026, 10 VUs, 1h)', `60s buckets · ${RUNS['soak_20261116_2333'].ts_range.start}`, RUNS['soak_20261116_2333'].series);
+
+// Render Inventory
+const invRows = Object.keys(RUNS).map(k => {
+  const r = RUNS[k];
+  return `<tr>
+    <td class="mono">${r.stem}</td>
+    <td>${r.stem.includes('20261118') ? '2026-11-18' : '2026-11-16'}</td>
+    <td>${r.completed ? '<span class="badge pass">COMPLETED</span>' : '<span class="badge fail">INCOMPLETE</span>'}</td>
+    <td class="mono">${r.last_running}</td>
+    <td class="mono">${r.files.join(', ')}</td>
+  </tr>`;
+}).join('');
+document.getElementById('table-inv').innerHTML = `<table><thead><tr><th>Run Stem</th><th>Date</th><th>Status</th><th>Console Completion Line</th><th>Source Files</th></tr></thead><tbody>${invRows}</tbody></table>`;
+</script>
+</body>
+</html>

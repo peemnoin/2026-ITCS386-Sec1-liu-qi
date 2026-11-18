@@ -29,12 +29,19 @@ PASSWORD = os.getenv("SHOP_ADMIN_PASSWORD")
 # completes COD checkout, and verifies the order
 # and remaining stock through the staff dashboard.
 
+def _create_chrome_driver():
+    """Create a Chrome WebDriver with HTTPS-Upgrade disabled for the plain-HTTP SUT."""
+    options = webdriver.ChromeOptions()
+    options.add_argument("--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable")
+    return webdriver.Chrome(options=options)
+
+
 def test_sys003_end_to_end():
     """SYS-003: create managed-stock product, validate quantities, COD order, verify order."""
     assert USERNAME, "SHOP_ADMIN_USERNAME is missing from .env"
     assert PASSWORD, "SHOP_ADMIN_PASSWORD is missing from .env"
 
-    staff_driver = webdriver.Chrome()
+    staff_driver = _create_chrome_driver()
     customer_driver = None
     wait = WebDriverWait(staff_driver, 90)
 
@@ -176,7 +183,7 @@ def test_sys003_end_to_end():
         # ==================================================
         # CUSTOMER: OPEN GUEST STOREFRONT AND FIND PRODUCT
         # ==================================================
-        customer_driver = webdriver.Chrome()
+        customer_driver = _create_chrome_driver()
         customer_wait = WebDriverWait(customer_driver, 90)
         customer_driver.get(SHOP_URL)
         customer_wait.until(EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Showing"))
@@ -497,19 +504,20 @@ def test_sys003_end_to_end():
         manage_stock_after = wait.until(EC.presence_of_element_located((By.ID, "_manage_stock")))
         assert manage_stock_after.is_selected(), "Manage stock was not enabled after checkout."
         post_order_stock = wait.until(EC.visibility_of_element_located((By.ID, "_stock"))).get_attribute("value")
+        if post_order_stock != "1":
+            # Allow one bounded page refresh in case admin cache lags briefly
+            staff_driver.refresh()
+            wait.until(EC.visibility_of_element_located((By.ID, "title")))
+            inv_tab = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href="#inventory_product_data"]')))
+            staff_driver.execute_script("arguments[0].click();", inv_tab)
+            post_order_stock = wait.until(EC.visibility_of_element_located((By.ID, "_stock"))).get_attribute("value")
+
         print("Initial stock: 3")
         print("Post-checkout stock:", post_order_stock)
-        if post_order_stock == "1":
-            print("POST-CHECKOUT STOCK OBSERVED: 1 (3 - 2)")
-            print("Stock value matches the expected remaining quantity.")
-        else:
-            # B's SYS-003 review explicitly records post-checkout stock
-            # reduction as NOT VERIFIED. Report the observed value without
-            # silently turning this evidence gap into a test failure/pass.
-            print(
-                "POST-CHECKOUT STOCK: NOT VERIFIED against expected 1; "
-                f"observed {post_order_stock!r}."
-            )
+        assert post_order_stock == "1", (
+            f"Expected stock 1 after buying 2 from 3; got {post_order_stock!r}"
+        )
+        print("POST-CHECKOUT STOCK VERIFIED: 1 (3 - 2)")
 
         print("SYS-003 CUSTOMER AND STAFF FLOW COMPLETED!")
 

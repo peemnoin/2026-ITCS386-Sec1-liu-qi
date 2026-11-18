@@ -285,17 +285,28 @@ The test execution output and detailed defect evidence are documented in `API te
 
 ## 4. System Testing
 
-**Objective:** Verify complete end-to-end workflows across the staff and customer sides of the WooCommerce shop.
+**Objective:** Verify complete end-to-end workflows across the staff and customer sides of the WooCommerce shop using manual testing and Cash on Delivery (COD).
 
-**Tools and Techniques:** Manual testing
+**Tools and Techniques:** Manual testing in separate Staff (`wp-admin`) and Guest Customer browser sessions.
 
-**Test Cases:** [To be completed]
+### 4.1 Execution Timeline & Provenance
 
-**Requirement Traceability Matrix:** [To be completed]
+- **Original Manual Execution (11 November 2026):** Executed by hand across all three scenarios; no subsequent manual rerun was performed. Automated UI runs in Section 5 are separate and are not counted as manual reruns.
+- **Retrospective Read-Only Inspection (18 November 2026):** Read-only WooCommerce admin/storefront inspection (`E01`–`E13` in [`System testing/screenshots/retrospective-2026-11-18/`](System%20testing/screenshots/retrospective-2026-11-18/EVIDENCE_INDEX.md)) corroborated historical records (`#127`, `#139`, `#142`, product `#141`, coupon `#138`) without modifying server state or replacing November 11 outcomes.
 
-**Test Results and Evidence:** [To be completed]
+### 4.2 Test Cases
 
-For detailed test cases, screenshots, and results, see the `System testing/` directory.
+| Case ID | Objective & Flow (Staff → Customer → Staff) | Nov 11 Manual Result | Nov 18 Retrospective Supplement |
+|---|---|---|---|
+| **SYS-001** | Staff creates `G01_SYS001_20261111_01 Mug` (THB 199, stock 10, Accessories) → Guest browses/sorts, adds qty 2 (THB 398), checks Checkout → Back, places COD order → Staff verifies and marks `Completed`. | **12 PASS, 3 NOT VERIFIED, 1 N/A.** Order `#127` (THB 398, Completed) verified. Step 4 (search) and Step 10 (Checkout → Back; `Sys001-10.png` shows empty cart) are `NOT VERIFIED`; Step 15 (guest My Account) is `N/A`; Step 16 `Sys001-15.png` was obscured. | [`E13`](System%20testing/screenshots/retrospective-2026-11-18/E13_SYS001_order127_list.jpg) and [`E01`](System%20testing/screenshots/retrospective-2026-11-18/E01_SYS001_order127_notes.jpg)–[`E03`](System%20testing/screenshots/retrospective-2026-11-18/E03_SYS001_order127_status.jpg) confirm `#127` (`Completed`, THB 398) in Orders list. Checkout → Back remains `NOT VERIFIED`. |
+| **SYS-002** | Staff creates `G01_SYS002_20261111_Tee` (THB 200) and 10% coupon → Guest adds qty 2 (THB 400), tests invalid coupon `G01INVALID_123`, applies/removes/reapplies coupon (THB 360), navigates away/back, places COD order → Staff inspects order and coupon usage. | **10 PASS, 1 FAIL, 2 NOT VERIFIED.** Invalid rejection, 10% discount, removal (`฿400`), reapplication (`฿360`), and Order `#139` verified. Step 2 is **`FAIL`** (coupon `gv82wtw5` lacked `G01` prefix); Step 8 (navigation persistence) and Step 12 (usage count; `Sys002-12.png` absent) are `NOT VERIFIED`. | [`E04`](System%20testing/screenshots/retrospective-2026-11-18/E04_SYS002_order139_discount.jpg) confirms `#139` retains `gv82wtw5`; [`E05`](System%20testing/screenshots/retrospective-2026-11-18/E05_SYS002_coupon138_current_code.jpg)–[`E07`](System%20testing/screenshots/retrospective-2026-11-18/E07_SYS002_coupon138_usage2.jpg) show Coupon ID 138 now reads `G01-GV82WTW5` with usage `2 / ∞` (does not retroactively pass Step 2 or prove `#139` delta). |
+| **SYS-003** | Staff creates `G01_SYS003_20261111_StockTest` (THB 150, stock 3) → Guest tests qty `0` & `4`, adds `2` (THB 300), updates to `1`, removes, re-adds `2`, checks My Account registration, places COD order → Staff checks Order `#142` and post-checkout stock. | **11 PASS, 2 NOT VERIFIED, 4 N/A.** Qty `0`/`4` tooltips, cart update/remove/re-add, Login-only My Account (registration Steps 10, 11, 14, 17 `N/A`), and Order `#142` (`Processing`, THB 300) verified. Step 2 (search) and Step 16 (post-checkout stock) were `NOT VERIFIED`. | **Step 16 retrospectively verified (`2026-11-18`):** [`E08`](System%20testing/screenshots/retrospective-2026-11-18/E08_SYS003_order142_stock_history.jpg) (`#142` notes `3→1` for `#141 ×2`) and [`E10`](System%20testing/screenshots/retrospective-2026-11-18/E10_SYS003_product141_inventory.jpg)–[`E12`](System%20testing/screenshots/retrospective-2026-11-18/E12_SYS003_storefront_stock1.jpg) confirm `#141` tracks stock `1`. |
+
+### 4.3 Requirement Traceability Matrix & Evidence
+
+- **Workbook & RTM:** [`G01_System_Testing_Results_and_RTM.xlsx`](System%20testing/test_cases/G01_System_Testing_Results_and_RTM.xlsx) (`RTM` sheet maps `REQ-01`–`REQ-11`: `REQ-03`, `REQ-05` [nav gaps noted], `REQ-06`, `REQ-09` covered; `REQ-01`, `REQ-02` [`PARTIAL (NOT VERIFIED)`], `REQ-04`, `REQ-08`, `REQ-10` [`PARTIAL`]; `REQ-07` & `REQ-11` `CONDITIONAL / N/A`).
+- **Detailed Audit History & Summaries:** [`System testing/README.md`](System%20testing/README.md) and [`EVIDENCE_INDEX.md`](System%20testing/screenshots/retrospective-2026-11-18/EVIDENCE_INDEX.md).
+- **Redacted Screenshots (Public-Safe):** [`Sys001-11_redacted.png`](System%20testing/screenshots/redacted/Sys001-11_redacted.png), [`Sys001-12_redacted.png`](System%20testing/screenshots/redacted/Sys001-12_redacted.png), [`Sys002-10_redacted.png`](System%20testing/screenshots/redacted/Sys002-10_redacted.png), [`Sys003-12_redacted.png`](System%20testing/screenshots/redacted/Sys003-12_redacted.png), [`Sys003-13_redacted.png`](System%20testing/screenshots/redacted/Sys003-13_redacted.png).
 
 ## 5. Automated UI Testing
 
@@ -319,21 +330,21 @@ Separate browser sessions are used for staff and guest customer activities. Each
 
 | UI Test | Automated From | What the Automation Verifies |
 |---|---|---|
-| UI-001 | SYS-001 | Product/category, quantity, cart and checkout total, COD checkout, order details, and final order status |
-| UI-002 | SYS-002 | Invalid and valid coupon behavior, discount calculation, checkout total, and staff order verification |
-| UI-003 | SYS-003 | Quantity boundaries, cart update/remove/re-add, checkout, order status, and remaining stock |
+| UI-001 | SYS-001 | Product/category, quantity, cart and checkout total, Checkout → Back retention without unintended order creation, COD checkout, order details, and final order status (`Processing` → `Completed`) |
+| UI-002 | SYS-002 | Invalid and valid `G01` coupon behavior, discount calculation, coupon removal/reapplication, navigation persistence, checkout total, staff order verification, and coupon usage count |
+| UI-003 | SYS-003 | Quantity boundaries (`0`, `4`), cart update/remove/re-add, checkout, order status, and hard assertion that remaining stock equals `1` |
 
-The tests use explicit waits and stable element locators such as IDs, names, and CSS selectors for dynamic page interactions.
+The tests use explicit waits and stable element locators such as IDs, names, and CSS selectors for dynamic page interactions, plus `--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable` for the plain-HTTP test server.
 
 ### 5.3 Test Results
 
-All three final recorded end-to-end executions completed successfully.
+Earlier single-run executions (`2026-11-14`) passed all three tests (`UI-001` Order `#449` in `73.43s`, `UI-002` Order `#452` in `61.41s`, `UI-003` Order `#454` in `62.21s`). After strengthening assertions on `2026-11-18`, Run 1 attempt 1 (`2026-11-18 17:06–17:08`) passed `UI-001` (`Order #889`, Completed) and `UI-003` (`Order #893`, stock `1`), while `UI-002` failed at coupon `#publish` (subsequently fixed locally in `test_ui_002.py`). **Two consecutive passing runs of the final updated UI code remain `NOT VERIFIED`.**
 
-| UI Test | Actual Result | Status |
+| UI Test | Latest Evidenced Result | Status |
 |---|---|---|
-| UI-001 | Two items were purchased for THB 398. The resulting order was verified by staff, and the order status was updated from Processing to Completed and verified by staff. | PASS |
-| UI-002 | The invalid coupon was rejected. The valid 10% coupon reduced the THB 400 subtotal by THB 40, resulting in a final total of THB 360. The resulting order was verified by staff. | PASS |
-| UI-003 | Quantities 0 and 4 were rejected. Cart update, removal, and re-addition were verified. A THB 300 order for two items was created with Processing status, and the remaining stock was verified as 1. | PASS |
+| UI-001 | `2026-11-18`: Two items purchased for THB 398 (`Order #889`), Checkout → Back (`native_back`) and no unintended order verified, status updated `Processing` → `Completed`. | PASS |
+| UI-002 | `2026-11-14`: Invalid coupon rejected, 10% coupon reduced THB 400 to THB 360 (`Order #452`). `2026-11-18` Run 1 failed at coupon `#publish` before local fix; updated coupon-removal/reapply/usage assertions not yet re-run. | NOT VERIFIED (updated code) |
+| UI-003 | `2026-11-18`: Quantities `0` and `4` rejected, cart update/remove/re-add verified, `Order #893` (THB 300, `Processing`) created, and hard assertion `post_order_stock == "1"` passed. | PASS |
 
 The automated tests verify visible page results such as cart and checkout totals, coupon discounts, order details and status, browser quantity validation, and inventory changes.
 
@@ -342,6 +353,8 @@ The automated tests verify visible page results such as cart and checkout totals
 During UI-001, the guest storefront did not display a visible Search Bar. This limitation was recorded, and the newly created product was located through shop pagination instead.
 
 During UI-003, the public My Account page displayed a Login form only and did not provide a customer registration form. Conditional registration-related steps were therefore treated as **N/A**, and no system configuration was changed.
+
+Two consecutive passing runs of the final updated UI suite (`test_ui_001.py`, `test_ui_002.py`, `test_ui_003.py`) have not yet been completed and recorded.
 
 ### 5.5 How to Run
 
@@ -363,13 +376,13 @@ Staff credentials are loaded from a local `.env` file and are not stored directl
 
 ### 5.6 Test Evidence
 
-Full-run screen recordings and terminal execution results for UI-001, UI-002, and UI-003 are provided in the `UI testing/` directory.
+Terminal screenshots (`2026-11-14` runs in [`UI testing/evidence/`](UI%20testing/evidence/)), `2026-11-18` Run 1 attempt 1 logs in [`UI testing/evidence/repeatability/run1_attempt1_failed/`](UI%20testing/evidence/repeatability/run1_attempt1_failed/console.txt), and full-run screen recordings are available for UI-001, UI-002, and UI-003:
 
 https://drive.google.com/drive/folders/1y-bGTgWzoUtVq6qrdx0ZjnHi729Br4-9?usp=sharing
 
-The evidence demonstrates the automated **Staff → Customer → Staff** workflows, page-level verification, and final Pytest results.
+The evidence demonstrates the automated **Staff → Customer → Staff** workflows, page-level verification, and Pytest results.
 
-Detailed test data, end-to-end flows, scripts, execution instructions, and evidence are documented in `UI testing/README.md`.
+Detailed test data, end-to-end flows, parity mapping, scripts, execution instructions, and evidence are documented in [`UI testing/README.md`](UI%20testing/README.md).
 
 
 ## 6. Performance Testing
