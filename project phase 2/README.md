@@ -413,6 +413,10 @@ Each virtual user waits 1 to 3 seconds between steps (0.5 to 1.5 seconds in the 
 | Constant-load checks | `avg_load_test.js` with `--stage` | 5, 10, 12, 13, 15 (30 s ramp-up, then 2 min) | 2.5 min each | 16 Nov 2026, 21:34 to 21:47 | `vu05_*`, `vu10_*`, `vu12_*`, `vu13_*`, `vu15_*` |
 | Spike | `spike_test.js` | 5 for 1 min, jump to 50 in 10 s, hold 1 min, back to 5 for 5 min | about 7.5 min | 16 Nov 2026, 23:11 | `spike_20261116_2311.*` (includes `.csv`) |
 | Soak | `soak_test.js` | 10 for 56 min (2 min ramp up and down) | 60 min | 16 Nov 2026, 23:33 | `soak_20261116_2333.*` (includes `.csv`) |
+| Average-load (repeat) | `avg_load_test.js` | same as above | 7 min | 18 Nov 2026, 17:35 | `avg_load_20261118_1735.*` |
+| Stress (repeat) | `stress_test.js` | same as above | 11 min | 18 Nov 2026, 17:42 | `stress_20261118_1735.*` |
+| Spike (repeat) | `spike_test.js` | same as above | about 7.5 min | 18 Nov 2026, 17:53 | `spike_20261118_1735.*` |
+| Soak (repeat) | `soak_test.js` | same as above | 60 min | 18 Nov 2026, 18:01 | `soak_20261118_1735.*` |
 
 We added the constant-load checks because the stress test only showed that the response time went above 1 second somewhere between 8 and 12 VUs. Running a fixed number of VUs for 2 minutes gave a clearer answer.
 
@@ -445,6 +449,7 @@ Every script has two thresholds:
 | Stress (up to 100 VUs) | 100 | 21.60 s | 8.64 s | 60.00 s | 0.25% | 4.73 | Failed |
 | Spike (5 to 50 VUs) | 50 | 10.0 s | 0.36 s | 14.37 s | 0.00% | 3.79 | Failed |
 | Soak (10 VUs, 1 hour) | 10 | 0.66 s | 0.33 s | 1.44 s | 0.00% | 4.08 | Passed |
+
 
 **Stress test by step.** We used the `.csv` output to measure the last 60 seconds of each step:
 
