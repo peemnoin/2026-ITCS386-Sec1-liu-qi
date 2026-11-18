@@ -41,6 +41,19 @@ The objective is to verify the correctness of API operations, validate complete 
 │   ├── System testing/
 │   │
 │   └── UI testing/
+│       ├── evidence/
+│       │   ├── ui001/
+│       │   │   └── terminal screenshot
+│       │   ├── ui002/
+│       │   │   └── terminal screenshot
+│       │   └── ui003/
+│       │       └── terminal screenshot
+│       │
+│       ├── README.md
+│       ├── test_ui_001.py
+│       ├── test_ui_002.py
+│       ├── test_ui_003.py
+│       └── requirements.txt
 │
 ├── .gitignore
 └── README.md
@@ -351,6 +364,8 @@ Staff credentials are loaded from a local `.env` file and are not stored directl
 ### 5.6 Test Evidence
 
 Full-run screen recordings and terminal execution results for UI-001, UI-002, and UI-003 are provided in the `UI testing/` directory.
+
+https://drive.google.com/drive/folders/1y-bGTgWzoUtVq6qrdx0ZjnHi729Br4-9?usp=sharing
 
 The evidence demonstrates the automated **Staff → Customer → Staff** workflows, page-level verification, and final Pytest results.
 
