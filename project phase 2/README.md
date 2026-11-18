@@ -383,7 +383,7 @@ Staff credentials are loaded from a local `.env` file and are not stored directl
 
 ### 5.6 Test Evidence
 
-Terminal screenshots (`2026-11-14` runs in [`UI testing/evidence/`](UI%20testing/evidence/)), `2026-11-18` Run 1 attempt 1 logs in [`UI testing/evidence/repeatability/run1_attempt1_failed/`](UI%20testing/evidence/repeatability/run1_attempt1_failed/console.txt), and full-run screen recordings are available for UI-001, UI-002, and UI-003:
+Terminal screenshots (`2026-11-14` runs in [`UI testing/evidence/`](UI%20testing/evidence/))
 
 https://drive.google.com/drive/folders/1y-bGTgWzoUtVq6qrdx0ZjnHi729Br4-9?usp=sharing
 
