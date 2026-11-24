@@ -242,7 +242,7 @@ python -m pytest tests -v
 | Add Item to Cart | 9 | 9 | 0 |
 | **Total** | **31** | **27** | **4** |
 
-**Execution Time:** 11.40 seconds
+**Execution Time:** 12.18 seconds
 
 **Overall Result:** 27 passed, 4 failed.
 
