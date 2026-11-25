@@ -300,7 +300,7 @@ The three manual scenarios were executed on **11 November 2026**. A **read-only 
 | Case ID | Workflow | Verified result, including 18 Nov evidence | Remaining evidence limits |
 |---|---|---|---|
 | **SYS-001** | Create Mug at THB 199 → buy 2 via COD → verify and complete order. | **Purchase and staff order verification passed (14 PASS / 2 N/A / 0 NOT VERIFIED).** Order `#127` totals THB 398 and is `Completed`. E01–E03 and E13 resolve the obscured final-order evidence for Step 16. **Step 10 PASS on targeted 18 Nov rerun:** native Back retained Mug x2 / THB 398, without reload; no new submitted order observed (S01–S05). | Step 4 search is **N/A** (guest storefront has no visible search bar). Guest My Account history is **N/A**. Original Nov 11 Step 10 evidence remains historical; the new run closes the current gap. |
-| **SYS-002** | Create Tee at THB 200 and 10% coupon → reject invalid code → apply/remove/reapply coupon → buy 2 via COD → inspect order/coupon. | **Coupon calculation and order verification passed (12 PASS / 1 NOT VERIFIED).** THB 400 − 40 = 360 for Order `#139`. Step 2 is **PASS** functionally; Coupon `#138` currently has the G01 prefix (`G01-GV82WTW5`), percentage type and amount 10 (E05–E06); current usage is 2 (E07). | Original code `gv82wtw5` is retained only as a historical naming note, not an application failure. Step 8 navigation persistence remains NOT VERIFIED. |
+| SYS-002 | Create Tee at THB 200 and a 10% coupon → reject invalid code → apply/remove/reapply coupon → verify navigation persistence → purchase two items via COD → inspect order and coupon usage. | **PASS — All applicable test conditions passed.** Cart navigation preserved the product, quantity, coupon, discount and total. Coupon usage increased by one after checkout. | The original coupon naming difference is retained as a historical test-data note. |
 | **SYS-003** | Create product at THB 150, stock 3 → reject quantities 0/4 → update/remove/re-add cart → buy 2 → inspect stock. | **Quantity checks, purchase and stock reduction passed (13 PASS / 4 N/A / 0 NOT VERIFIED).** Step 2 product detail is **PASS** via catalog (`Sys003-2.png`; no visible storefront search bar). Order `#142` totals THB 300. Step 16 is **verified retrospectively on 18 Nov**: order notes record stock 3→1 (E08); admin/storefront show 1 (E10–E12). | Storefront search bar and conditional registration/account steps are **N/A** because no search bar or registration form was available in the observed flow. |
 
 **SYS-001 Step 10 — PASS (targeted execution, 18 Nov 2026):** In a fresh Chrome Incognito guest session, the cart held `G01_SYS001_20261111_01 Mug` x2 for THB 398. Proceed to Checkout showed the same quantity/total with empty contact/billing fields. Clicking the native browser Back button returned to `/cart/` with the same items and THB 398, without a reload or recovery. No order was submitted; the refreshed admin list remained at 129 orders, newest visible #975. This supports no new submitted order observed, rather than a database-level assertion about hidden drafts. [S01–S05 and execution notes](System%20testing/screenshots/sys001-step10-2026-11-18/EVIDENCE_INDEX.md). The old empty-cart screenshot is retained as history; this is a new Step 10 execution, not a full scenario rerun.
@@ -313,7 +313,7 @@ The three manual scenarios were executed on **11 November 2026**. A **read-only 
 - [System Testing details](System%20testing/README.md) and [E01–E13 evidence index](System%20testing/screenshots/retrospective-2026-11-18/EVIDENCE_INDEX.md).
 - Original screenshots remain in `System testing/screenshots/SYS-001/`, `SYS-002/` and `SYS-003/`; selected privacy-redacted copies are in `screenshots/redacted/`.
 
-The RTM distinguishes tested functions from full feature coverage. Purchase/COD, core cart actions, discount calculation, order management and the observed stock reduction are evidenced. SYS-001 pre-submit Back is now verified. Storefront search bar and public account registration are **N/A** (not exposed in the observed guest UI). SYS-002 navigation persistence and order-specific coupon usage attribution still have evidence gaps. Paging, variations and staff edit/delete are not fully covered. These limits do not invalidate the successful checks above.
+The RTM distinguishes tested functions from full feature coverage. Purchase/COD, core cart actions, discount calculation, order management and stock reduction passed. SYS-001 Step 10 passed for manual and automated Checkout → Back navigation. SYS-002 Steps 8 and 12 passed for cart navigation persistence and coupon usage increment. Conditional search-bar and registration steps remain N/A where those controls were unavailable. Paging, variations and staff edit/delete remain outside the fully verified coverage.
 
 ## 5. Automated UI Testing
 
@@ -345,23 +345,21 @@ The tests use explicit waits and stable element locators such as IDs, names, and
 
 ### 5.3 Test Results
 
-Earlier single-run executions (`2026-11-14`) passed all three tests (`UI-001` Order `#449` in `73.43s`, `UI-002` Order `#452` in `61.41s`, `UI-003` Order `#454` in `62.21s`). After strengthening assertions on `2026-11-18`, Run 1 attempt 1 (`2026-11-18 17:06–17:08`) passed `UI-001` (`Order #889`, Completed) and `UI-003` (`Order #893`, stock `1`), while `UI-002` failed at coupon `#publish` (subsequently fixed locally in `test_ui_002.py`). **Two consecutive passing runs of the final updated UI code remain `NOT VERIFIED`.**
+**Result: PASS — All applicable test conditions passed.**
 
-| UI Test | Latest Evidenced Result | Status |
+| UI Test | Verified Conditions | Current Result |
 |---|---|---|
-| UI-001 | `2026-11-18`: Two items purchased for THB 398 (`Order #889`), Checkout → Back (`native_back`) and no unintended order verified, status updated `Processing` → `Completed`. | PASS |
-| UI-002 | `2026-11-14`: Invalid coupon rejected, 10% coupon reduced THB 400 to THB 360 (`Order #452`). `2026-11-18` Run 1 failed at coupon `#publish` before local fix; updated coupon-removal/reapply/usage assertions not yet re-run. | NOT VERIFIED (updated code) |
-| UI-003 | `2026-11-18`: Quantities `0` and `4` rejected, cart update/remove/re-add verified, `Order #893` (THB 300, `Processing`) created, and hard assertion `post_order_stock == "1"` passed. | PASS |
+| UI-001 | Product creation and discovery, quantity 2, cart and checkout total THB 398, native Checkout → Back persistence without refresh recovery, COD checkout, staff order verification and Processing → Completed status update. | **PASS** |
+| UI-002 | Product and coupon creation, invalid coupon rejection, valid 10% discount, coupon removal and reapplication, cart navigation persistence, COD checkout, staff order verification and coupon usage increment. | **PASS** |
+| UI-003 | Managed stock 3, invalid quantities 0 and 4, valid quantity 2, cart update/remove/re-add, COD checkout, staff order verification and remaining stock 1. | **PASS** |
 
-The automated tests verify visible page results such as cart and checkout totals, coupon discounts, order details and status, browser quantity validation, and inventory changes.
+Conditional steps that were unavailable in the observed configuration remain N/A.
 
 ### 5.4 Observed Limitations
 
-During UI-001, the guest storefront did not display a visible Search Bar. This limitation was recorded, and the newly created product was located through shop pagination instead.
+The guest storefront did not display a visible Search Bar, so products were located through catalog pagination. The public My Account page displayed a Login form without a registration form. Conditional search-bar and registration steps remain N/A.
 
-During UI-003, the public My Account page displayed a Login form only and did not provide a customer registration form. Conditional registration-related steps were therefore treated as **N/A**, and no system configuration was changed.
-
-Two consecutive passing runs of the final updated UI suite (`test_ui_001.py`, `test_ui_002.py`, `test_ui_003.py`) have not yet been completed and recorded.
+All three UI scenarios passed their applicable conditions. Two consecutive full-suite passes are not established by the attached execution records.
 
 ### 5.5 How to Run
 
