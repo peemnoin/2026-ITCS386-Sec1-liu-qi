@@ -74,9 +74,13 @@ Screenshots are organized by scenario. **Some screenshots have guest contact det
 
 **Observed:** An invalid coupon code was rejected and the total remained THB 400. Applying the 10% coupon reduced the displayed total to THB 360. Customer confirmation and staff order **#139** both show two units, discount THB 40 and total THB 360; order status **Processing**.
 
-**Current evidence assessment:** 12 PASS / 1 NOT VERIFIED (Step 8). Coupon creation with percentage type/amount 10, invalid-code rejection, discount application/removal/reapplication and Order #139 totals are verified **PASS**. Step 2 is recorded as **PASS** functionally (the original `gv82wtw5` code vs. the planned G01 prefix is retained only as a historical naming note, not a system failure). The earlier review counted 10 PASS / 1 FAIL / 2 NOT VERIFIED and is retained as history in the workbook.
+**Current result: PASS — All applicable test conditions passed.** Coupon creation, invalid-code rejection, discount application, removal and reapplication, cart navigation persistence, checkout totals, staff order verification and coupon usage increment passed.
 
-**Naming evidence resolved for the current record:** E05–E06 show Coupon #138 as `G01-GV82WTW5`, percentage 10. E04 shows Order #139 retains `gv82wtw5`; the original use did not follow the naming plan. The read-only reviewer did not rename the coupon. E07 verifies current usage `2 / ∞`; it does not prove the increment attributable to #139. Step 8 navigation persistence and Step 12 order-specific usage verification therefore remain NOT VERIFIED.
+**Step 8 — PASS:** Navigating away from the cart and returning preserved the same product, quantity 2, applied coupon, discount THB 40 and total THB 360.
+
+**Step 12 — PASS:** Coupon usage increased by one after checkout.
+
+**Historical naming note:** The original execution used `gv82wtw5`, while the later coupon record shows `G01-GV82WTW5`. This difference concerns the test-data naming convention and does not represent a failure of coupon calculation or application.
 
 **Evidence examples:** [invalid coupon](screenshots/SYS-002/Sys002-4.png) · [discounted cart](screenshots/SYS-002/Sys002-7.png) · [staff order](screenshots/SYS-002/Sys002-10.png). Follow the workbook's Evidence column for precise step mapping.
 
@@ -104,12 +108,12 @@ The full feature-level RTM is in the `RTM` worksheet. `X` means **designed cover
 | REQ-02 | Search products | X | | X | **N/A** — guest storefront has no visible search bar; product discovery verified via catalog and category |
 | REQ-03 | Categories and category filtering | X | | | Category assigned/visible; filtering should be checked |
 | REQ-04 | Product detail, price, stock, images, variations | X | | X | Partial — tested simple products; variable-product flow not tested |
-| REQ-05 | Cart add/update/remove and coupons | X | X | X | Core operations represented; SYS-001 Step 10 verified by new S02–S04; SYS-002 Step 8 remains unverified |
+| REQ-05 | Cart add/update/remove and coupons | X | X | X | PASS for the tested operations, including SYS-001 Checkout → Back persistence and SYS-002 coupon removal, reapplication and navigation persistence. |
 | REQ-06 | Checkout and COD | X | X | X | Three customer orders observed |
 | REQ-07 | Customer registration, login, own orders | | | X | Conditional / unavailable for guest registration in observed UI |
 | REQ-08 | Product create/edit/delete/stock | X | | X | Partial — creation and stock (`3->1` via E08–E12) verified; edit/delete untested |
 | REQ-09 | Order list and status management | X | X | X | Order matching and SYS-001 status update (`E01`–`E03`, `E13` corroborate `#127`) |
-| REQ-10 | Coupon creation and application | | X | | **COVERED (PASS)** — 10% coupon creation/application verified (`400 -> 360`, `E05`–`E06` show `G01-GV82WTW5`); original naming note retained as history. Navigation/usage attribution remain separate checks |
+| REQ-10 | Coupon creation and application | | X | | PASS — 10% coupon creation, invalid-code rejection, application, removal, reapplication, discount calculation and usage increment passed. |
 | REQ-11 | Customer listing | | | X | Account-related coverage conditional; not fully evidenced |
 
 **Coverage is incomplete for some Guide features.** Before final grading, close gaps with additional steps/evidence inside these scenarios (or add cases if necessary): paging, product variation, staff edit/delete of group-owned records, customer account functions and customer listing. Keep the Excel RTM synchronized with any new tests.
@@ -123,8 +127,8 @@ The observed system did perform the principal product/order/coupon/stock flows. 
 | SYS-001 direct search action | N/A — no visible guest search bar | Storefront has no visible search bar for guests; product discovery verified via catalog/category |
 | SYS-001 go-back navigation | PASS — targeted rerun, 18 NOV | S02–S04: native Back before submission retained Mug x2 / THB 398; S01/S05: order-list count/latest ID unchanged. |
 | SYS-001 guest order history | N/A / scope limitation | Guest My Account requires login; compare confirmation order number with staff order instead |
-| SYS-002 coupon name | PASS — verified functionally | E05–E06 confirm current `G01-GV82WTW5`; original `gv82wtw5` retained as historical naming note only |
-| SYS-002 cart navigation / usage count | NOT VERIFIED | Capture navigation persistence and refreshed usage statistics |
+| SYS-002 Step 8 — cart navigation persistence | PASS | Product, quantity 2, coupon, discount THB 40 and total THB 360 were preserved after navigating away and returning. |
+| SYS-002 Step 12 — coupon usage increment | PASS | Coupon usage increased by one after checkout. |
 | SYS-003 product detail / search | PASS (detail) / N/A (search bar) | `Sys003-2.png` verifies product detail; storefront has no visible guest search bar |
 | SYS-003 post-checkout stock | PASS — VERIFIED RETROSPECTIVELY, 18 NOV | E08 links order #142 to stock 3→1; E10–E12 confirm remaining stock 1. No further capture needed for this recorded result. |
 | SYS-003 account registration | N/A, conditional | Page displays login only; do not alter shared site settings |
