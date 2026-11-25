@@ -7,7 +7,7 @@ This is a targeted re-execution of Step 10, not a full SYS-001 rerun and not a r
 ## Environment and method
 
 - Customer: a new Google Chrome Incognito window, not signed in. Checkout explicitly states “You are currently checking out as a guest.”
-- Staff: the existing signed-in Group 01 admin session in a separate ChatGPT in-app browser.
+- Staff: the existing signed-in Group 01 admin session in a separate browser window.
 - Existing product: `G01_SYS001_20261111_01 Mug`, THB 199, product page displayed stock 8. Product located through a direct search URL redirect; this is not evidence of using a storefront search control.
 - Starting guest cart was empty. Set quantity to 2 and clicked Add to cart, then View cart.
 - Clicked Proceed to Checkout. Left contact/billing fields empty. Did not click Place order.
