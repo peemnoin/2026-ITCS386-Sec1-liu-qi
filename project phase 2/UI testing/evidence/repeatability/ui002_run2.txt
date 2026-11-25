@@ -1,0 +1,151 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.11, pytest-9.2.0, pluggy-1.7.0 -- /opt/miniconda3/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /Users/sunattthaboonlaor/2026-ITCS386-Sec1-liu-qi/project phase 2/UI testing
+plugins: anyio-4.14.2
+collecting ... collected 1 item
+
+test_ui_002.py::test_sys002_end_to_end Staff login successful!
+Product price entered: 200
+Accessories selected: True
+Saved product price: 200
+Saved Accessories category: True
+Saved product status: publish
+
+Created product: G01_UI002_20261125_150449_Tee
+Product price: ฿200.00
+Accessories category verified!
+Product published successfully!
+Created coupon: G01UI00220261125_150449
+Coupon discount: 10%
+Coupon published successfully!
+Baseline coupon usage verified: 0 / ∞
+Storefront loaded successfully!
+
+--- SHOP PAGE 1 ---
+Matching product: 0
+
+--- SHOP PAGE 2 ---
+Matching product: 0
+
+--- SHOP PAGE 3 ---
+Matching product: 0
+
+--- SHOP PAGE 4 ---
+Matching product: 0
+
+--- SHOP PAGE 5 ---
+Matching product: 0
+
+--- SHOP PAGE 6 ---
+Matching product: 0
+
+--- SHOP PAGE 7 ---
+Matching product: 0
+
+--- SHOP PAGE 8 ---
+Matching product: 0
+
+--- SHOP PAGE 9 ---
+Matching product: 0
+
+--- SHOP PAGE 10 ---
+Matching product: 0
+
+--- SHOP PAGE 11 ---
+Matching product: 1
+PRODUCT FOUND!
+Product Detail verified!
+Product added to cart!
+Quantity: 2
+Cart verified!
+Subtotal before coupon: ฿400.00
+Invalid coupon rejected successfully!
+Total remains: ฿400.00
+Coupon expected: G01UI00220261125_150449
+Coupon entered: G01UI00220261125_150449
+Valid coupon applied successfully!
+Discount: -฿40.00
+Final total: ฿360.00
+Step 6 PASS: Coupon removed; total returned to ฿400.00!
+Step 7 PASS: Valid coupon reapplied; single ฿40.00 discount, total ฿360.00!
+Step 8 PASS: Product x2, coupon, and ฿360.00 preserved after navigate away/back!
+Guest information entered successfully!
+COD selected successfully!
+Checkout total: ฿360.00
+
+Order confirmation:
+Skip to content
+ITCS386 Shop
+Cart
+Checkout
+My account
+Shop
+Order received
+Thank you. Your order has been received.
+Order #:
+1879
+Date:
+November 25, 2026
+Total:
+฿360.00
+Email:
+g01.ui002.20261125_150449@example.com
+Payment:
+Cash on delivery
+Order details
+Product Total
+G01_UI002_20261125_150449_Tee  × 2 ฿400.00
+Discount: –฿40.00
+Total: ฿360.00
+Billing address
+Test Buyer
+123 Test Street
+Bangkok
+Bangkok
+10110
+0800000000
+ITCS386 Shop
+Blog
+About
+FAQs
+Authors
+Events
+Shop
+Patterns
+Themes
+Twenty Twenty-Five
+Designed with WordPress
+
+SYS-002 CUSTOMER FLOW PASSED!
+Product: G01_UI002_20261125_150449_Tee
+Quantity: 2
+Subtotal: ฿400.00
+Coupon: G01UI00220261125_150449
+Discount: -฿40.00
+Final Total: ฿360.00
+Payment: Cash on delivery
+Order Number: 1879
+
+SYS-002 STAFF VERIFICATION PASSED!
+Order Number: 1879
+Product: G01_UI002_20261125_150449_Tee
+Quantity: 2
+Coupon: G01UI00220261125_150449
+Subtotal: ฿400.00
+Discount: -฿40.00
+Total: ฿360.00
+Status: Processing
+Step 12 PASS: Coupon G01UI00220261125_150449 usage incremented 0 -> 1!
+PASSED
+
+=============================== warnings summary ===============================
+../../../../../opt/miniconda3/lib/python3.13/site-packages/anyio/pytest_plugin.py:14
+  /opt/miniconda3/lib/python3.13/site-packages/anyio/pytest_plugin.py:14: PytestRemovedIn10Warning: _pytest.python.CallSpec2 has been renamed to CallSpec.
+  The CallSpec2 alias will be removed in pytest 10.
+  Update imports to use CallSpec instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#callspec2-renamed
+    from _pytest.python import CallSpec2
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 37.93s =========================

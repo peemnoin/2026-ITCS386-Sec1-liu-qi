@@ -1,12 +1,15 @@
 import os
+import sys
 import re
 
 from datetime import datetime
 from dotenv import load_dotenv
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+
+SELECT_ALL_KEY = Keys.COMMAND if sys.platform == "darwin" else Keys.CONTROL
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -35,6 +38,39 @@ def _create_chrome_driver():
     return webdriver.Chrome(options=options)
 
 
+def _publish_and_wait(driver, tries=3, seconds_per_try=40):
+    """Click Publish and wait until WordPress opens the saved post page.
+
+    On the shared server the first click is sometimes ignored (for example while
+    WordPress is still autosaving), so click again up to `tries` times.
+    Clicking again submits the same post, so it does not create a duplicate.
+    """
+    for attempt in range(1, tries + 1):
+        button = WebDriverWait(driver, 60).until(
+            EC.presence_of_element_located((By.ID, "publish"))
+        )
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", button)
+        try:
+            button.click()
+        except Exception:
+            driver.execute_script("arguments[0].click();", button)
+        try:
+            WebDriverWait(driver, seconds_per_try).until(
+                lambda d: "post.php" in d.current_url and "post-new.php" not in d.current_url
+            )
+            return
+        except TimeoutException:
+            notices = [
+                e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, ".notice, .error")
+                if e.text.strip()
+            ]
+            print(f"Publish attempt {attempt} not saved yet (URL: {driver.current_url}; notices: {notices})")
+    raise AssertionError(f"Post was not published after {tries} attempts")
+
+
+# Goal (SYS-002): staff creates a product and a 10% coupon; a guest checks an
+# invalid coupon, applies/removes/reapplies the valid one, pays THB 360 by COD,
+# and staff verifies the order and the coupon usage count.
 def test_sys002_end_to_end():
 
     assert USERNAME, "SHOP_ADMIN_USERNAME is missing from .env"
@@ -53,9 +89,8 @@ def test_sys002_end_to_end():
         coupon_code = f"G01UI002{timestamp}"
         invalid_coupon = f"INVALID{timestamp}"
 
-        # ==========================================
-        # STAFF SIDE: LOGIN
-        # ==========================================
+
+        ## STAFF SIDE: LOGIN
 
         driver.get(ADMIN_URL)
 
@@ -81,9 +116,8 @@ def test_sys002_end_to_end():
 
         print("Staff login successful!")
 
-        # ==========================================
-        # STAFF SIDE: CREATE PRODUCT
-        # ==========================================
+
+        ## STAFF SIDE: CREATE PRODUCT
 
         driver.get(
             ADMIN_URL + "post-new.php?post_type=product"
@@ -155,22 +189,7 @@ def test_sys002_end_to_end():
         assert category.is_selected()
 
         # Publish Product
-        publish_button = wait.until(
-            EC.element_to_be_clickable((By.ID, "publish"))
-        )
-        driver.execute_script(
-            "arguments[0].scrollIntoView({block: 'center'});",
-            publish_button
-        )
-        publish_button.click()
-
-        # Wait for WordPress to leave the new-post screen.
-        wait.until(
-            lambda d: (
-                "post.php" in d.current_url
-                and "post-new.php" not in d.current_url
-            )
-        )
+        _publish_and_wait(driver)
 
         # Verify the saved title and price on the edit page.
         saved_product_name = wait.until(
@@ -214,9 +233,8 @@ def test_sys002_end_to_end():
         print("Accessories category verified!")
         print("Product published successfully!")
 
-        # ==========================================
-        # STAFF SIDE: CREATE 10% COUPON
-        # ==========================================
+
+        ## STAFF SIDE: CREATE 10% COUPON
 
         driver.get(
             ADMIN_URL + "post-new.php?post_type=shop_coupon"
@@ -333,9 +351,8 @@ def test_sys002_end_to_end():
         )
         print(f"Baseline coupon usage verified: {baseline_usage_cell}")
 
-        # ==========================================
-        # CUSTOMER SIDE: OPEN GUEST STOREFRONT
-        # ==========================================
+
+        ## CUSTOMER SIDE: OPEN GUEST STOREFRONT
 
         customer_driver = _create_chrome_driver()
 
@@ -356,9 +373,8 @@ def test_sys002_end_to_end():
 
         print("Storefront loaded successfully!")
 
-        # ==========================================
-        # CUSTOMER SIDE: FIND NEW PRODUCT
-        # ==========================================
+
+        ## CUSTOMER SIDE: FIND NEW PRODUCT
 
         product_link = None
 
@@ -441,9 +457,8 @@ def test_sys002_end_to_end():
 
         print("Product Detail verified!")
 
-        # ==========================================
-        # CUSTOMER SIDE: ADD 2 TO CART
-        # ==========================================
+
+        ## CUSTOMER SIDE: ADD 2 TO CART
 
         quantity = customer_wait.until(
             EC.visibility_of_element_located(
@@ -477,9 +492,8 @@ def test_sys002_end_to_end():
         print("Product added to cart!")
         print("Quantity: 2")
 
-        # ==========================================
-        # CUSTOMER SIDE: OPEN CART
-        # ==========================================
+
+        ## CUSTOMER SIDE: OPEN CART
 
         view_cart = customer_wait.until(
             EC.element_to_be_clickable(
@@ -507,9 +521,8 @@ def test_sys002_end_to_end():
         print("Cart verified!")
         print("Subtotal before coupon: ฿400.00")
 
-        # ==========================================
-        # CUSTOMER SIDE: INVALID COUPON
-        # ==========================================
+
+        ## CUSTOMER SIDE: INVALID COUPON
 
         # Open Add coupons panel
         add_coupon_panel = customer_wait.until(
@@ -578,9 +591,8 @@ def test_sys002_end_to_end():
         print("Invalid coupon rejected successfully!")
         print("Total remains: ฿400.00")
 
-        # ==========================================
-        # CUSTOMER SIDE: VALID COUPON
-        # ==========================================
+
+        ## CUSTOMER SIDE: VALID COUPON
 
         # Re-locate the input after the invalid-coupon response.
         coupon_input = customer_wait.until(
@@ -594,7 +606,7 @@ def test_sys002_end_to_end():
 
         # Replace the invalid code completely.
         coupon_input.click()
-        coupon_input.send_keys(Keys.CONTROL, "a")
+        coupon_input.send_keys(SELECT_ALL_KEY, "a")
         coupon_input.send_keys(Keys.BACKSPACE)
         coupon_input.send_keys(coupon_code)
 
@@ -634,9 +646,9 @@ def test_sys002_end_to_end():
         print("Discount: -฿40.00")
         print("Final total: ฿360.00")
 
-        # ==========================================
-        # CUSTOMER SIDE: REMOVE COUPON (SYS-002 STEP 6)
-        # ==========================================
+
+        ## CUSTOMER SIDE: REMOVE COUPON (SYS-002 STEP 6)
+
         remove_coupon_btn = customer_wait.until(
             EC.element_to_be_clickable(
                 (By.CSS_SELECTOR, "button.wc-block-components-chip__remove")
@@ -650,26 +662,47 @@ def test_sys002_end_to_end():
                 "400.00"
             )
         )
-        cart_after_remove = customer_driver.find_element(By.TAG_NAME, "body").text
-        assert coupon_code.lower() not in cart_after_remove.lower(), (
-            "Coupon code still visible after removal."
+        # The success notice ("Coupon code ... has been removed") still shows the
+        # code, so check the coupon chip and discount rows instead of the whole page.
+        customer_wait.until(
+            lambda d: not d.find_elements(
+                By.CSS_SELECTOR, "button.wc-block-components-chip__remove"
+            )
         )
+        discount_rows = customer_driver.find_elements(
+            By.CSS_SELECTOR, ".wc-block-components-totals-discount"
+        )
+        assert not any(
+            coupon_code.lower() in row.text.lower() for row in discount_rows
+        ), "Coupon is still applied after removal."
+        cart_after_remove = customer_driver.find_element(By.TAG_NAME, "body").text
         assert "40.00" not in cart_after_remove, (
             "Discount 40.00 still visible after coupon removal."
         )
         assert "400.00" in cart_after_remove
         print("Step 6 PASS: Coupon removed; total returned to ฿400.00!")
 
-        # ==========================================
-        # CUSTOMER SIDE: REAPPLY VALID COUPON (SYS-002 STEP 7)
-        # ==========================================
+
+        ## CUSTOMER SIDE: REAPPLY VALID COUPON (SYS-002 STEP 7)
+
+        # After a coupon is removed, WooCommerce collapses the coupon panel,
+        # so open "Add coupons" again before typing the code.
+        coupon_inputs = customer_driver.find_elements(
+            By.ID, "wc-block-components-totals-coupon__input-coupon"
+        )
+        if not any(element.is_displayed() for element in coupon_inputs):
+            customer_wait.until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "//*[normalize-space()='Add coupons']")
+                )
+            ).click()
         reapply_input = customer_wait.until(
             EC.element_to_be_clickable(
                 (By.ID, "wc-block-components-totals-coupon__input-coupon")
             )
         )
         reapply_input.click()
-        reapply_input.send_keys(Keys.CONTROL, "a")
+        reapply_input.send_keys(SELECT_ALL_KEY, "a")
         reapply_input.send_keys(Keys.BACKSPACE)
         reapply_input.send_keys(coupon_code)
 
@@ -690,9 +723,9 @@ def test_sys002_end_to_end():
         assert "360.00" in cart_after_reapply
         print("Step 7 PASS: Valid coupon reapplied; single ฿40.00 discount, total ฿360.00!")
 
-        # ==========================================
-        # CUSTOMER SIDE: NAVIGATE AWAY AND BACK (SYS-002 STEP 8)
-        # ==========================================
+
+        ## CUSTOMER SIDE: NAVIGATE AWAY AND BACK (SYS-002 STEP 8)
+
         customer_driver.get(product_url)
         customer_wait.until(
             EC.visibility_of_element_located((By.NAME, "quantity"))
@@ -720,9 +753,8 @@ def test_sys002_end_to_end():
         assert "360.00" in cart_after_nav
         print("Step 8 PASS: Product x2, coupon, and ฿360.00 preserved after navigate away/back!")
 
-        # ==========================================
-        # CUSTOMER SIDE: CHECKOUT
-        # ==========================================
+
+        ## CUSTOMER SIDE: CHECKOUT
 
         checkout_button = customer_wait.until(
             EC.element_to_be_clickable(
@@ -742,9 +774,8 @@ def test_sys002_end_to_end():
             )
         )
 
-        # ==========================================
-        # CUSTOMER SIDE: GUEST INFORMATION
-        # ==========================================
+
+        ## CUSTOMER SIDE: GUEST INFORMATION
 
         guest_email = (
             f"g01.ui002.{timestamp}@example.com"
@@ -809,9 +840,8 @@ def test_sys002_end_to_end():
 
         print("Guest information entered successfully!")
 
-        # ==========================================
-        # CUSTOMER SIDE: CASH ON DELIVERY
-        # ==========================================
+
+        ## CUSTOMER SIDE: CASH ON DELIVERY
 
         cod_option = customer_wait.until(
             EC.presence_of_element_located(
@@ -845,9 +875,8 @@ def test_sys002_end_to_end():
         print("COD selected successfully!")
         print("Checkout total: ฿360.00")
 
-        # ==========================================
-        # CUSTOMER SIDE: PLACE ORDER
-        # ==========================================
+
+        ## CUSTOMER SIDE: PLACE ORDER
 
         place_order_button = customer_wait.until(
             EC.element_to_be_clickable(
@@ -887,9 +916,8 @@ def test_sys002_end_to_end():
         print("\nOrder confirmation:")
         print(confirmation_text)
 
-        # ==========================================
-        # EXTRACT ORDER NUMBER
-        # ==========================================
+
+        ## EXTRACT ORDER NUMBER
 
         order_match = re.search(
             r"Order\s*(?:number|#)\s*:?\s*#?(\d+)",
@@ -927,9 +955,7 @@ def test_sys002_end_to_end():
         print("Payment: Cash on delivery")
         print("Order Number:", order_number)
 
-        # ==========================================
-        # STAFF SIDE: VERIFY THE NEW ORDER
-        # ==========================================
+        ## STAFF SIDE: VERIFY THE NEW ORDER
 
         # Reuse the authenticated Staff browser and the Order Number
         # extracted from this run. Do not hardcode a previous Order ID.

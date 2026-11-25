@@ -1,0 +1,124 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.11, pytest-9.2.0, pluggy-1.7.0 -- /opt/miniconda3/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /Users/sunattthaboonlaor/2026-ITCS386-Sec1-liu-qi/project phase 2/UI testing
+plugins: anyio-4.14.2
+collecting ... collected 1 item
+
+test_ui_001.py::test_sys001_end_to_end Publish attempt 1 not saved yet (URL: http://157.85.102.236/shop/wp-admin/post-new.php?post_type=product&wp-post-new-reload=true; notices: [])
+
+Created product: G01_UI001_20261125_150921_Mug
+Storefront loaded successfully!
+Step 4 FAIL: Guest storefront has no visible Search Bar.
+
+--- SHOP PAGE 1 ---
+Matching product: 0
+
+--- SHOP PAGE 2 ---
+Matching product: 0
+
+--- SHOP PAGE 3 ---
+Matching product: 0
+
+--- SHOP PAGE 4 ---
+Matching product: 0
+
+--- SHOP PAGE 5 ---
+Matching product: 0
+
+--- SHOP PAGE 6 ---
+Matching product: 0
+
+--- SHOP PAGE 7 ---
+Matching product: 0
+
+--- SHOP PAGE 8 ---
+Matching product: 0
+
+--- SHOP PAGE 9 ---
+Matching product: 0
+
+--- SHOP PAGE 10 ---
+Matching product: 1
+PRODUCT FOUND!
+Product Detail verified!
+Step 5 PASS: Accessories category verified!
+Step 6 PASS: Sorting by price low to high!
+Returned to Product Detail successfully!
+Customer purchased: G01_UI001_20261125_150921_Mug
+Quantity: 2
+Cart total: ฿398.00
+Verified no unintended order created during Browser Back (top order before=#1881 Test Buyer, after=#1881 Test Buyer).
+Step 10 PASS (native_back): Existing cart qty 2 and ฿398.00 restored after Browser Back!
+Guest information entered successfully!
+COD selected successfully!
+Checkout total: ฿398.00
+Order confirmation:
+Skip to content
+ITCS386 Shop
+Cart
+Checkout
+My account
+Shop
+Order received
+Thank you. Your order has been received.
+Order #:
+1883
+Date:
+November 25, 2026
+Total:
+฿398.00
+Email:
+g01.ui001.20261125_150921@example.com
+Payment:
+Cash on delivery
+Order details
+Product Total
+G01_UI001_20261125_150921_Mug  × 2 ฿398.00
+Total: ฿398.00
+Billing address
+Test Buyer
+123 Test Street
+Bangkok
+Bangkok
+10110
+0800000000
+ITCS386 Shop
+Blog
+About
+FAQs
+Authors
+Events
+Shop
+Patterns
+Themes
+Twenty Twenty-Five
+Designed with WordPress
+ORDER PLACED SUCCESSFULLY!
+Order Number: 1883
+Staff verified correct Order!
+Order Number: 1883
+Product: G01_UI001_20261125_150921_Mug
+Quantity: 2
+Total: ฿398.00
+Current status: Processing
+Order status updated: COMPLETED
+FINAL STAFF VERIFICATION PASSED!
+Preview
+#1883 Test Buyer
+5 seconds ago
+Completed
+฿398.00
+Direct
+PASSED
+
+=============================== warnings summary ===============================
+../../../../../opt/miniconda3/lib/python3.13/site-packages/anyio/pytest_plugin.py:14
+  /opt/miniconda3/lib/python3.13/site-packages/anyio/pytest_plugin.py:14: PytestRemovedIn10Warning: _pytest.python.CallSpec2 has been renamed to CallSpec.
+  The CallSpec2 alias will be removed in pytest 10.
+  Update imports to use CallSpec instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#callspec2-renamed
+    from _pytest.python import CallSpec2
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=================== 1 passed, 1 warning in 71.93s (0:01:11) ====================

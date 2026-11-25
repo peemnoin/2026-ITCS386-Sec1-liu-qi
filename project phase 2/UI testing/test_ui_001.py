@@ -1,7 +1,7 @@
 import os
 import re
 from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from datetime import datetime
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -27,6 +27,38 @@ def _create_chrome_driver():
     return webdriver.Chrome(options=options)
 
 
+def _publish_and_wait(driver, tries=3, seconds_per_try=40):
+    """Click Publish and wait until WordPress opens the saved post page.
+
+    On the shared server the first click is sometimes ignored (for example while
+    WordPress is still autosaving), so click again up to `tries` times.
+    Clicking again submits the same post, so it does not create a duplicate.
+    """
+    for attempt in range(1, tries + 1):
+        button = WebDriverWait(driver, 60).until(
+            EC.presence_of_element_located((By.ID, "publish"))
+        )
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", button)
+        try:
+            button.click()
+        except Exception:
+            driver.execute_script("arguments[0].click();", button)
+        try:
+            WebDriverWait(driver, seconds_per_try).until(
+                lambda d: "post.php" in d.current_url and "post-new.php" not in d.current_url
+            )
+            return
+        except TimeoutException:
+            notices = [
+                e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, ".notice, .error")
+                if e.text.strip()
+            ]
+            print(f"Publish attempt {attempt} not saved yet (URL: {driver.current_url}; notices: {notices})")
+    raise AssertionError(f"Post was not published after {tries} attempts")
+
+
+# Goal (SYS-001): staff creates a product, a guest buys 2 items by COD
+# (including Checkout -> Back), and staff verifies the order and marks it Completed.
 def test_sys001_end_to_end():
     assert USERNAME, "SHOP_ADMIN_USERNAME is missing from .env"
     assert PASSWORD, "SHOP_ADMIN_PASSWORD is missing from .env"
@@ -35,15 +67,15 @@ def test_sys001_end_to_end():
     customer_driver = None
 
     try:
-        wait = WebDriverWait(driver, 20)
+        # Shared classroom server can respond slowly.
+        wait = WebDriverWait(driver, 120)
 
         # Generate unique data for this UI test run
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         product_name = f"G01_UI001_{timestamp}_Mug"
 
-        # ==========================================
-        # STAFF SIDE: CREATE PRODUCT
-        # ==========================================
+
+        ## STAFF SIDE: CREATE PRODUCT
 
         # 1. Open WordPress Admin
         driver.get(ADMIN_URL)
@@ -141,22 +173,7 @@ def test_sys001_end_to_end():
         stock_field.send_keys("10")
 
         # 10. Publish Product
-        publish_button = wait.until(
-            EC.presence_of_element_located(
-                (By.ID, "publish")
-            )
-        )
-
-        driver.execute_script(
-            "arguments[0].scrollIntoView({block: 'center'});",
-            publish_button
-        )
-
-        wait.until(
-            EC.element_to_be_clickable(
-                (By.ID, "publish")
-            )
-        ).click()
+        _publish_and_wait(driver)
 
         publish_notice = wait.until(
             EC.visibility_of_element_located(
@@ -174,9 +191,8 @@ def test_sys001_end_to_end():
 
         print(f"\nCreated product: {product_name}")
 
-        # ==========================================
-        # CUSTOMER SIDE: BROWSE SHOP
-        # ==========================================
+
+        ## CUSTOMER SIDE: BROWSE SHOP
 
         # 11. Open independent Guest browser
         customer_driver = _create_chrome_driver()
@@ -277,9 +293,8 @@ def test_sys001_end_to_end():
         # Keep the exact URL so we can return after category sorting.
         product_url = customer_driver.current_url
 
-        # ==========================================
-        # CUSTOMER SIDE: CATEGORY AND SORTING
-        # ==========================================
+
+        ## CUSTOMER SIDE: CATEGORY AND SORTING
 
         # 15. Navigate to Accessories Category
         category_link = customer_wait.until(
@@ -294,6 +309,18 @@ def test_sys001_end_to_end():
         customer_wait.until(
             EC.url_contains(
                 "/product-category/accessories/"
+            )
+        )
+
+        # The shared shop now has many products in Accessories, so the new
+        # product is not on the first page with default sorting. Show the
+        # newest products first ("Sort by latest") to find it on page 1.
+        category_url = customer_driver.current_url.split("?")[0]
+        customer_driver.get(category_url + "?orderby=date")
+        customer_wait.until(
+            EC.text_to_be_present_in_element(
+                (By.TAG_NAME, "body"),
+                product_name
             )
         )
 
@@ -349,9 +376,8 @@ def test_sys001_end_to_end():
         ).text
         print("Returned to Product Detail successfully!")
 
-        # ==========================================
-        # CUSTOMER SIDE: PRODUCT AND CART
-        # ==========================================
+
+        ## CUSTOMER SIDE: PRODUCT AND CART
 
         # 17. Set Quantity to 2
         quantity = customer_wait.until(
@@ -404,9 +430,8 @@ def test_sys001_end_to_end():
         print("Quantity: 2")
         print(f"Cart total: {cart_total.text}")
 
-        # ==========================================
-        # CUSTOMER SIDE: BROWSER BACK
-        # ==========================================
+
+        ## CUSTOMER SIDE: BROWSER BACK
 
         # 22. Open Checkout before placing the order
         # Record latest order ID in Staff Admin before entering Checkout
@@ -510,9 +535,8 @@ def test_sys001_end_to_end():
 
         print(f"Step 10 PASS ({back_recovery_mode}): Existing cart qty 2 and ฿398.00 restored after Browser Back!")
 
-        # ==========================================
-        # CUSTOMER SIDE: GUEST CHECKOUT
-        # ==========================================
+
+        ## CUSTOMER SIDE: GUEST CHECKOUT
 
         # 24. Return to Checkout
         checkout_button = customer_wait.until(
@@ -600,9 +624,8 @@ def test_sys001_end_to_end():
         print("COD selected successfully!")
         print(f"Checkout total: {checkout_total.text}")
 
-        # ==========================================
-        # CUSTOMER SIDE: PLACE ORDER
-        # ==========================================
+
+        ## CUSTOMER SIDE: PLACE ORDER
 
         # 28. Place Order
         place_order_button = customer_wait.until(
@@ -653,9 +676,8 @@ def test_sys001_end_to_end():
         print("ORDER PLACED SUCCESSFULLY!")
         print("Order Number:", order_number)
 
-        # ==========================================
-        # STAFF SIDE: FIND AND VERIFY ORDER
-        # ==========================================
+
+        ## STAFF SIDE: FIND AND VERIFY ORDER
 
         # 31. Open WooCommerce Orders
         driver.get(
@@ -676,15 +698,21 @@ def test_sys001_end_to_end():
             By.ID, "search-submit"
         ).click()
 
-        # 33. Open matching Order
-        order_link = wait.until(
-            EC.element_to_be_clickable(
-                (By.XPATH,
-                 f"//a[contains(normalize-space(), '#{order_number}')]")
-            )
-        )
+        # Wait until the search results page has replaced the old page,
+        # otherwise the order link can belong to the old page (stale element).
+        wait.until(EC.staleness_of(order_search))
 
-        order_link.click()
+        # 33. Open matching Order
+        order_xpath = f"//a[contains(normalize-space(), '#{order_number}')]"
+        for attempt in range(3):
+            try:
+                wait.until(
+                    EC.element_to_be_clickable((By.XPATH, order_xpath))
+                ).click()
+                break
+            except StaleElementReferenceException:
+                if attempt == 2:
+                    raise
 
         # 34. Verify Order details
         wait.until(
@@ -706,9 +734,8 @@ def test_sys001_end_to_end():
         print("Quantity: 2")
         print("Total: ฿398.00")
 
-        # ==========================================
-        # STAFF SIDE: UPDATE ORDER STATUS
-        # ==========================================
+
+        ## STAFF SIDE: UPDATE ORDER STATUS
 
         # 35. Verify current Processing status
         status_dropdown = wait.until(
@@ -767,9 +794,8 @@ def test_sys001_end_to_end():
 
         print("Order status updated: COMPLETED")
 
-        # ==========================================
-        # STAFF SIDE: FINAL ORDER VERIFICATION
-        # ==========================================
+
+        ## STAFF SIDE: FINAL ORDER VERIFICATION
 
         # 38. Return to Orders list
         driver.get(

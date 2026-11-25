@@ -1,12 +1,15 @@
 import os
+import sys
 import re
 from datetime import datetime
 
 from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+
+SELECT_ALL_KEY = Keys.COMMAND if sys.platform == "darwin" else Keys.CONTROL
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -36,6 +39,65 @@ def _create_chrome_driver():
     return webdriver.Chrome(options=options)
 
 
+def _publish_and_wait(driver, tries=3, seconds_per_try=40):
+    """Click Publish and wait until WordPress opens the saved post page.
+
+    On the shared server the first click is sometimes ignored (for example while
+    WordPress is still autosaving), so click again up to `tries` times.
+    Clicking again submits the same post, so it does not create a duplicate.
+    """
+    for attempt in range(1, tries + 1):
+        button = WebDriverWait(driver, 60).until(
+            EC.presence_of_element_located((By.ID, "publish"))
+        )
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", button)
+        try:
+            button.click()
+        except Exception:
+            driver.execute_script("arguments[0].click();", button)
+        try:
+            WebDriverWait(driver, seconds_per_try).until(
+                lambda d: "post.php" in d.current_url and "post-new.php" not in d.current_url
+            )
+            return
+        except TimeoutException:
+            notices = [
+                e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, ".notice, .error")
+                if e.text.strip()
+            ]
+            print(f"Publish attempt {attempt} not saved yet (URL: {driver.current_url}; notices: {notices})")
+    raise AssertionError(f"Post was not published after {tries} attempts")
+
+
+def _staff_login(driver):
+    """Log in to WordPress admin. The shared server is sometimes slow, so retry once."""
+    for attempt in range(1, 3):
+        driver.get(ADMIN_URL)
+        WebDriverWait(driver, 60).until(
+            lambda d: d.find_elements(By.ID, "user_login") or d.find_elements(By.ID, "wpadminbar")
+        )
+        if driver.find_elements(By.ID, "wpadminbar"):
+            return
+        user_field = driver.find_element(By.ID, "user_login")
+        user_field.clear()
+        user_field.send_keys(USERNAME)
+        pass_field = driver.find_element(By.ID, "user_pass")
+        pass_field.clear()
+        pass_field.send_keys(PASSWORD)
+        driver.find_element(By.ID, "wp-submit").click()
+        try:
+            WebDriverWait(driver, 60).until(
+                EC.presence_of_element_located((By.ID, "wpadminbar"))
+            )
+            return
+        except TimeoutException:
+            print(f"Staff login attempt {attempt} did not reach the dashboard (URL: {driver.current_url})")
+    raise AssertionError("Staff login did not reach the WordPress dashboard after 2 attempts")
+
+
+# Goal (SYS-003): staff creates a product with stock 3; a guest checks that
+# quantities 0 and 4 are rejected, changes the cart, buys 2 by COD,
+# and staff verifies the order and that the stock is now 1.
 def test_sys003_end_to_end():
     """SYS-003: create managed-stock product, validate quantities, COD order, verify order."""
     assert USERNAME, "SHOP_ADMIN_USERNAME is missing from .env"
@@ -43,7 +105,7 @@ def test_sys003_end_to_end():
 
     staff_driver = _create_chrome_driver()
     customer_driver = None
-    wait = WebDriverWait(staff_driver, 90)
+    wait = WebDriverWait(staff_driver, 120)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     product_name = f"G01_UI003_{timestamp}_StockTest"
@@ -52,19 +114,12 @@ def test_sys003_end_to_end():
     product_id = None
 
     try:
-        # ==================================================
-        # STAFF: LOGIN
-        # ==================================================
-        staff_driver.get(ADMIN_URL)
-        wait.until(EC.visibility_of_element_located((By.ID, "user_login"))).send_keys(USERNAME)
-        staff_driver.find_element(By.ID, "user_pass").send_keys(PASSWORD)
-        staff_driver.find_element(By.ID, "wp-submit").click()
-        wait.until(EC.visibility_of_element_located((By.ID, "dashboard-widgets-wrap")))
+
+        ## STAFF: LOGIN
+        _staff_login(staff_driver)
         print("Staff login successful!")
 
-        # ==================================================
-        # STAFF: CREATE A NEW PRODUCT
-        # ==================================================
+        ## STAFF: CREATE A NEW PRODUCT
         staff_driver.get(ADMIN_URL + "post-new.php?post_type=product")
 
         title = wait.until(EC.visibility_of_element_located((By.ID, "title")))
@@ -155,12 +210,7 @@ def test_sys003_end_to_end():
             '#product_cat-all input[name="tax_input[product_cat][]"][value="25"]'
         ).is_selected()
 
-        publish_button = wait.until(EC.presence_of_element_located((By.ID, "publish")))
-        staff_driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", publish_button)
-        wait.until(EC.element_to_be_clickable((By.ID, "publish"))).click()
-
-        # WordPress may remain on the edit URL after saving; wait for a saved post page.
-        wait.until(lambda d: "post.php" in d.current_url and "post-new.php" not in d.current_url)
+        _publish_and_wait(staff_driver)
         wait.until(EC.presence_of_element_located((By.ID, "title")))
         saved_title = staff_driver.find_element(By.ID, "title").get_attribute("value")
         assert saved_title == product_name, f"Saved product title mismatch: {saved_title}"
@@ -180,9 +230,8 @@ def test_sys003_end_to_end():
         print(f"Created and published product: {product_name}")
         print("Price: ฿150.00 | Initial stock: 3 | Accessories")
 
-        # ==================================================
-        # CUSTOMER: OPEN GUEST STOREFRONT AND FIND PRODUCT
-        # ==================================================
+
+        ## CUSTOMER: OPEN GUEST STOREFRONT AND FIND PRODUCT
         customer_driver = _create_chrome_driver()
         customer_wait = WebDriverWait(customer_driver, 90)
         customer_driver.get(SHOP_URL)
@@ -219,11 +268,9 @@ def test_sys003_end_to_end():
         assert min_value == "1", f"Expected quantity min=1, got {min_value}"
         assert max_value == "3", f"Expected quantity max=3, got {max_value}"
 
-        # ==================================================
-        # CUSTOMER: INVALID QUANTITY 0
-        # ==================================================
+        ## CUSTOMER: INVALID QUANTITY 0
         quantity_input.click()
-        quantity_input.send_keys(Keys.CONTROL, "a")  # Select existing quantity
+        quantity_input.send_keys(SELECT_ALL_KEY, "a")  # Select existing quantity
         quantity_input.send_keys("0")
         value_zero = quantity_input.get_attribute("value")
         valid_zero = customer_driver.execute_script(
@@ -237,12 +284,10 @@ def test_sys003_end_to_end():
         print("Quantity 0 validation:", message_zero)
         assert not valid_zero, "Quantity 0 should be rejected by browser validation."
 
-        # ==================================================
-        # CUSTOMER: INVALID QUANTITY 4 (STOCK IS 3)
-        # ==================================================
+        ## CUSTOMER: INVALID QUANTITY 4 (STOCK IS 3)
         quantity_input = customer_wait.until(EC.visibility_of_element_located((By.NAME, "quantity")))
         quantity_input.click()
-        quantity_input.send_keys(Keys.CONTROL, "a")  # Select existing quantity
+        quantity_input.send_keys(SELECT_ALL_KEY, "a")  # Select existing quantity
         quantity_input.send_keys("4")
         value_four = quantity_input.get_attribute("value")
         valid_four = customer_driver.execute_script(
@@ -256,12 +301,10 @@ def test_sys003_end_to_end():
         print("Quantity 4 validation:", message_four)
         assert not valid_four, "Quantity 4 should be rejected because stock is 3."
 
-        # ==================================================
-        # CUSTOMER: VALID QUANTITY 2
-        # ==================================================
+        ## CUSTOMER: VALID QUANTITY 2
         quantity_input = customer_wait.until(EC.visibility_of_element_located((By.NAME, "quantity")))
         quantity_input.click()
-        quantity_input.send_keys(Keys.CONTROL, "a")  # Select existing quantity
+        quantity_input.send_keys(SELECT_ALL_KEY, "a")  # Select existing quantity
         quantity_input.send_keys("2")
         assert quantity_input.get_attribute("value") == "2"
         assert customer_driver.execute_script("return arguments[0].checkValidity();", quantity_input)
@@ -282,15 +325,13 @@ def test_sys003_end_to_end():
         assert "300.00" in cart_text
         print("Cart verified: quantity 2, total ฿300.00")
 
-        # ==================================================
-        # CUSTOMER: CHANGE CART QUANTITY TO 1 (SYS-003 STEP 6)
-        # ==================================================
+        ## CUSTOMER: CHANGE CART QUANTITY TO 1 (SYS-003 STEP 6)
         cart_quantity = customer_wait.until(EC.visibility_of_element_located((
             By.CSS_SELECTOR,
             "input.wc-block-components-quantity-selector__input"
         )))
         cart_quantity.click()
-        cart_quantity.send_keys(Keys.CONTROL, "a")
+        cart_quantity.send_keys(SELECT_ALL_KEY, "a")
         cart_quantity.send_keys("1")
         cart_quantity.send_keys(Keys.TAB)
 
@@ -307,9 +348,8 @@ def test_sys003_end_to_end():
         assert "150.00" in cart_text_one
         print("Cart quantity updated to 1 | Subtotal: ฿150.00")
 
-        # ==================================================
-        # CUSTOMER: REMOVE PRODUCT (SYS-003 STEP 7)
-        # ==================================================
+
+        ## CUSTOMER: REMOVE PRODUCT (SYS-003 STEP 7)
         remove_button = customer_wait.until(EC.element_to_be_clickable((
             By.CSS_SELECTOR, "button.wc-block-cart-item__remove-link"
         )))
@@ -321,13 +361,11 @@ def test_sys003_end_to_end():
         assert "Your cart is currently empty" in empty_cart_text
         print("Cart removal verified: cart is empty.")
 
-        # ==================================================
-        # CUSTOMER: ADD PRODUCT AGAIN, QUANTITY 2 (SYS-003 STEP 8)
-        # ==================================================
+        ## CUSTOMER: ADD PRODUCT AGAIN, QUANTITY 2 (SYS-003 STEP 8)
         customer_driver.get(product_url)
         quantity_input = customer_wait.until(EC.visibility_of_element_located((By.NAME, "quantity")))
         quantity_input.click()
-        quantity_input.send_keys(Keys.CONTROL, "a")
+        quantity_input.send_keys(SELECT_ALL_KEY, "a")
         quantity_input.send_keys("2")
         assert quantity_input.get_attribute("value") == "2"
         assert customer_driver.execute_script("return arguments[0].checkValidity();", quantity_input)
@@ -348,9 +386,7 @@ def test_sys003_end_to_end():
         assert "300.00" in cart_text_again
         print("Product added again: quantity 2 | Subtotal: ฿300.00")
 
-        # ==================================================
-        # CUSTOMER: CHECK PUBLIC REGISTRATION (SYS-003 STEP 9)
-        # ==================================================
+        ## CUSTOMER: CHECK PUBLIC REGISTRATION (SYS-003 STEP 9)
         my_account_links = customer_driver.find_elements(
             By.CSS_SELECTOR, "a[href*='my-account']"
         )
@@ -376,9 +412,7 @@ def test_sys003_end_to_end():
         cart_text_before_checkout = customer_driver.find_element(By.TAG_NAME, "body").text
         assert "300.00" in cart_text_before_checkout
 
-        # ==================================================
-        # CUSTOMER: GUEST CHECKOUT + COD
-        # ==================================================
+        ## CUSTOMER: GUEST CHECKOUT + COD
         checkout_button = customer_wait.until(EC.element_to_be_clickable((
             By.CSS_SELECTOR, "a.wc-block-cart__submit-button"
         )))
@@ -428,9 +462,7 @@ def test_sys003_end_to_end():
         print("CUSTOMER FLOW PASSED!")
         print("Order Number:", order_number)
 
-        # ==================================================
-        # STAFF: VERIFY THE NEW ORDER
-        # ==================================================
+        ## STAFF: VERIFY THE NEW ORDER
         staff_driver.get(ADMIN_URL + "admin.php?page=wc-orders")
         search = wait.until(EC.visibility_of_element_located((By.ID, "orders-search-input-search-input")))
         search.clear()
@@ -479,9 +511,7 @@ def test_sys003_end_to_end():
         print("Order Total: ฿300.00")
         print("Order Status:", order_status)
 
-        # ==================================================
-        # STAFF: VERIFY POST-CHECKOUT STOCK (SYS-003 STEP 16)
-        # ==================================================
+        ## STAFF: VERIFY POST-CHECKOUT STOCK (SYS-003 STEP 16)
         staff_driver.get(ADMIN_URL + f"post.php?post={product_id}&action=edit")
         wait.until(EC.visibility_of_element_located((By.ID, "title")))
         inventory_tab = wait.until(EC.presence_of_element_located((

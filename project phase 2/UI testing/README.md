@@ -182,7 +182,26 @@ The tests use separate browser sessions for staff and guest customer activities.
 
 ## 4. Test Execution Summary
 
-The following table summarizes the final recorded end-to-end test executions.
+**Final repeatability evidence (25 November 2026).** Each automated UI test was run twice in a row with the same final code, and every run passed. Each run created a new product, coupon and order with a timestamp in the name, so the second run did not reuse data from the first run. The full pytest output of every run is saved in [`evidence/repeatability/`](evidence/repeatability/).
+
+| UI Test | Run 1 | Run 2 | Status |
+|---|---|---|---|
+| UI-001 | 15:07, Order `#1881`: 2 items, THB 398, status `Completed` (75.20 s) | 15:09, Order `#1883`: same result (71.93 s) | PASS on both runs |
+| UI-002 | 15:03, Order `#1876`: THB 400 to THB 360 with the 10% coupon, coupon usage 0 to 1 (37.76 s) | 15:04, Order `#1879`: same result (37.93 s) | PASS on both runs |
+| UI-003 | 14:53, Order `#1869`: quantities 0 and 4 rejected, stock 3 to 1 (77.69 s) | 15:00, Order `#1871`: same result (35.84 s) | PASS on both runs |
+
+**Test code fixes before the final runs.** On 25 November we fixed problems in the test code, not in the shop:
+
+- Select-all key: the tests use Cmd+A on macOS and Ctrl+A on Windows (`SELECT_ALL_KEY`), because they were first written on Windows.
+- Publish: if WordPress ignores the first click on Publish, the test clicks again (up to 3 times) and waits for the saved post page (`_publish_and_wait`).
+- UI-001: opens the Accessories category with "Sort by latest", because the category now has many products and the new product was not on page 1. It also waits for the order search results before opening the order.
+- UI-002: after removing the coupon, it checks the coupon chip and the discount row (the "removed" message still shows the code), and it opens the "Add coupons" panel again before reapplying the coupon.
+- UI-003: retries the staff login once when the shared server is slow.
+- Longer waits (up to 120 s) because the shared server was slow on the deadline day.
+
+### Earlier single runs (history)
+
+The table below shows earlier single runs from 14 November 2026, before the fixes above.
 
 | Test ID | Scenario | Execution time (2026-11-14 evidence) | Result |
 |---|---|---:|---|
@@ -190,7 +209,7 @@ The following table summarizes the final recorded end-to-end test executions.
 | UI-002 | Coupon Validation and Discount | 61.41 seconds (Order `#452`) | PASS |
 | UI-003 | Inventory Limits, Cart Changes and Guest Checkout | 62.21 seconds (Order `#454`) | PASS |
 
-All three earlier end-to-end executions (2026-11-14) completed successfully. Following the 2026-11-18 audit, assertions in `test_ui_001.py`, `test_ui_002.py`, and `test_ui_003.py` were strengthened, and `--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable` was added for Chrome 157's automatic HTTPS upgrade. On **2026-11-18 17:06–17:08 (Run 1)** (`evidence/repeatability/run1/console.txt`, `results.xml`), `UI-001` (Order `#889`, Completed) and `UI-003` (Order `#893`, post-checkout stock `1`) **PASSED**, while `UI-002` **FAILED** with a `TimeoutException` after clicking `#publish` on coupon creation (product `G01_UI002_20261118_170656_Tee` created; no coupon or order created). `test_ui_002.py` was updated with a JS-click retry for `#publish`; **two consecutive passing runs of the updated code remain `NOT VERIFIED`** pending re-execution authorization.
+All three earlier end-to-end executions (2026-11-14) completed successfully. The final two-run repeatability evidence from 25 November is shown at the start of this section.
 
 ### 4.1 Manual-to-Automated Parity Mapping
 
@@ -288,7 +307,6 @@ Screen recordings and terminal screenshots should be saved for each full end-to-
 
 ```text
 UI testing/
-├── .env.example
 ├── README.md
 ├── requirements.txt
 ├── test_browser.py          # initial browser smoke-test script (not part of UI-001..003)
@@ -306,9 +324,13 @@ UI testing/
     │   ├── Screenshot 2026-11-14 003916.png
     │   ├── Screenshot 2026-11-14 003926.png
     │   └── Screenshot 2026-11-14 003944.png
-    └── ui003/
-        ├── Screenshot 2026-11-14 003959.png
-        └── Screenshot 2026-11-14 004015.png
+    ├── ui003/
+    │   ├── Screenshot 2026-11-14 003959.png
+    │   └── Screenshot 2026-11-14 004015.png
+    └── repeatability/       # final evidence, 25 Nov 2026: two passing runs per test
+        ├── ui001_run1.txt, ui001_run2.txt
+        ├── ui002_run1.txt, ui002_run2.txt
+        └── ui003_run1.txt, ui003_run2.txt
 ```
 Screen recordings (`.mp4`) are hosted externally on Google Drive due to file size:
 https://drive.google.com/drive/folders/1y-bGTgWzoUtVq6qrdx0ZjnHi729Br4-9?usp=sharing

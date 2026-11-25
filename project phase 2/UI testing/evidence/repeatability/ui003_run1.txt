@@ -1,0 +1,63 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.11, pytest-9.2.0, pluggy-1.7.0 -- /opt/miniconda3/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /Users/sunattthaboonlaor/2026-ITCS386-Sec1-liu-qi/project phase 2/UI testing
+plugins: anyio-4.14.2
+collecting ... collected 1 item
+
+test_ui_003.py::test_sys003_end_to_end Staff login successful!
+Publish attempt 1 not saved yet (URL: http://157.85.102.236/shop/wp-admin/post-new.php?post_type=product&wp-post-new-reload=true; notices: [])
+Created and published product: G01_UI003_20261125_145308_StockTest
+Price: ฿150.00 | Initial stock: 3 | Accessories
+Guest storefront loaded!
+--- SHOP PAGE 1 ---
+--- SHOP PAGE 2 ---
+--- SHOP PAGE 3 ---
+--- SHOP PAGE 4 ---
+--- SHOP PAGE 5 ---
+--- SHOP PAGE 6 ---
+--- SHOP PAGE 7 ---
+--- SHOP PAGE 8 ---
+--- SHOP PAGE 9 ---
+--- SHOP PAGE 10 ---
+--- SHOP PAGE 11 ---
+PRODUCT FOUND!
+Quantity min: 1 max: 3
+Quantity 0 entered value: 0
+Quantity 0 valid: False
+Quantity 0 validation: Value must be greater than or equal to 1.
+Quantity 4 entered value: 4
+Quantity 4 valid: False
+Quantity 4 validation: Value must be less than or equal to 3.
+Valid quantity 2 added to cart!
+Cart verified: quantity 2, total ฿300.00
+Cart quantity updated to 1 | Subtotal: ฿150.00
+Cart removal verified: cart is empty.
+Product added again: quantity 2 | Subtotal: ฿300.00
+Registration unavailable: My Account is login-only; Steps 10, 11 and 14 are N/A.
+Guest information entered successfully!
+COD selected | Checkout total: ฿300.00
+CUSTOMER FLOW PASSED!
+Order Number: 1869
+STAFF ORDER VERIFICATION PASSED!
+Order Number: 1869
+Product: G01_UI003_20261125_145308_StockTest
+Quantity: 2
+Order Total: ฿300.00
+Order Status: Processing
+Initial stock: 3
+Post-checkout stock: 1
+POST-CHECKOUT STOCK VERIFIED: 1 (3 - 2)
+SYS-003 CUSTOMER AND STAFF FLOW COMPLETED!
+PASSED
+
+=============================== warnings summary ===============================
+../../../../../opt/miniconda3/lib/python3.13/site-packages/anyio/pytest_plugin.py:14
+  /opt/miniconda3/lib/python3.13/site-packages/anyio/pytest_plugin.py:14: PytestRemovedIn10Warning: _pytest.python.CallSpec2 has been renamed to CallSpec.
+  The CallSpec2 alias will be removed in pytest 10.
+  Update imports to use CallSpec instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#callspec2-renamed
+    from _pytest.python import CallSpec2
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=================== 1 passed, 1 warning in 77.69s (0:01:17) ====================

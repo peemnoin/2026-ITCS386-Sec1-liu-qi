@@ -345,23 +345,32 @@ The tests use explicit waits and stable element locators such as IDs, names, and
 
 ### 5.3 Test Results
 
-Earlier single-run executions (`2026-11-14`) passed all three tests (`UI-001` Order `#449` in `73.43s`, `UI-002` Order `#452` in `61.41s`, `UI-003` Order `#454` in `62.21s`). After strengthening assertions on `2026-11-18`, Run 1 attempt 1 (`2026-11-18 17:06–17:08`) passed `UI-001` (`Order #889`, Completed) and `UI-003` (`Order #893`, stock `1`), while `UI-002` failed at coupon `#publish` (subsequently fixed locally in `test_ui_002.py`). **Two consecutive passing runs of the final updated UI code remain `NOT VERIFIED`.**
+**Final repeatability evidence (25 November 2026).** Each automated UI test was run twice in a row with the same final code, and every run passed. Each run created a new product, coupon and order with a timestamp in the name, so the second run did not reuse data from the first run. The full pytest output of every run is saved in [`UI testing/evidence/repeatability/`](UI%20testing/evidence/repeatability/).
 
-| UI Test | Latest Evidenced Result | Status |
-|---|---|---|
-| UI-001 | `2026-11-18`: Two items purchased for THB 398 (`Order #889`), Checkout → Back (`native_back`) and no unintended order verified, status updated `Processing` → `Completed`. | PASS |
-| UI-002 | `2026-11-14`: Invalid coupon rejected, 10% coupon reduced THB 400 to THB 360 (`Order #452`). `2026-11-18` Run 1 failed at coupon `#publish` before local fix; updated coupon-removal/reapply/usage assertions not yet re-run. | NOT VERIFIED (updated code) |
-| UI-003 | `2026-11-18`: Quantities `0` and `4` rejected, cart update/remove/re-add verified, `Order #893` (THB 300, `Processing`) created, and hard assertion `post_order_stock == "1"` passed. | PASS |
+| UI Test | Run 1 | Run 2 | Status |
+|---|---|---|---|
+| UI-001 | 15:07, Order `#1881`: 2 items, THB 398, status `Completed` (75.20 s) | 15:09, Order `#1883`: same result (71.93 s) | PASS on both runs |
+| UI-002 | 15:03, Order `#1876`: THB 400 to THB 360 with the 10% coupon, coupon usage 0 to 1 (37.76 s) | 15:04, Order `#1879`: same result (37.93 s) | PASS on both runs |
+| UI-003 | 14:53, Order `#1869`: quantities 0 and 4 rejected, stock 3 to 1 (77.69 s) | 15:00, Order `#1871`: same result (35.84 s) | PASS on both runs |
+
+**Test code fixes before the final runs.** On 25 November we fixed problems in the test code, not in the shop:
+
+- Select-all key: the tests use Cmd+A on macOS and Ctrl+A on Windows (`SELECT_ALL_KEY`), because they were first written on Windows.
+- Publish: if WordPress ignores the first click on Publish, the test clicks again (up to 3 times) and waits for the saved post page (`_publish_and_wait`).
+- UI-001: opens the Accessories category with "Sort by latest", because the category now has many products and the new product was not on page 1. It also waits for the order search results before opening the order.
+- UI-002: after removing the coupon, it checks the coupon chip and the discount row (the "removed" message still shows the code), and it opens the "Add coupons" panel again before reapplying the coupon.
+- UI-003: retries the staff login once when the shared server is slow.
+- Longer waits (up to 120 s) because the shared server was slow on the deadline day.
 
 The automated tests verify visible page results such as cart and checkout totals, coupon discounts, order details and status, browser quantity validation, and inventory changes.
+
+Earlier single runs (14 and 18 November) are kept as history in [`UI testing/README.md`](UI%20testing/README.md).
 
 ### 5.4 Observed Limitations
 
 During UI-001, the guest storefront did not display a visible Search Bar. This limitation was recorded, and the newly created product was located through shop pagination instead.
 
 During UI-003, the public My Account page displayed a Login form only and did not provide a customer registration form. Conditional registration-related steps were therefore treated as **N/A**, and no system configuration was changed.
-
-Two consecutive passing runs of the final updated UI suite (`test_ui_001.py`, `test_ui_002.py`, `test_ui_003.py`) have not yet been completed and recorded.
 
 ### 5.5 How to Run
 
@@ -383,7 +392,7 @@ Staff credentials are loaded from a local `.env` file and are not stored directl
 
 ### 5.6 Test Evidence
 
-Terminal screenshots (`2026-11-14` runs in [`UI testing/evidence/`](UI%20testing/evidence/))
+Final repeatability logs (25 November, two passing runs per test) are in [`UI testing/evidence/repeatability/`](UI%20testing/evidence/repeatability/). Earlier terminal screenshots (14 November) are in [`UI testing/evidence/`](UI%20testing/evidence/). Full-run screen recordings are available here:
 
 https://drive.google.com/drive/folders/1y-bGTgWzoUtVq6qrdx0ZjnHi729Br4-9?usp=sharing
 
